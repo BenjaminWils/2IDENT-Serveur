@@ -38,7 +38,7 @@ public class Salon extends Thread{
 
     @Override
     public String toString() {
-        return "::nbJoueursMax=" + nbJoueurs + ", nbJoueurs=" + String.valueOf(this.getNbJoueurs()) + ", nom=" + nom + "";
+        return "::nbJoueursMax=" + nbJoueurs + ", nbJoueurs=" + String.valueOf(this.getNbJoueurs()) + ", nom=" + nom;
     }
     
     @Override

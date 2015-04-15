@@ -3,6 +3,7 @@ package serveur;
 import java.io.*;
 import java.net.*;
 import java.util.*;
+import org.json.simple.*;
 
 /**
  * Classe Serveur : Fait office de serveur de jeu. Accepte et délègue les connexions entrantes.
@@ -89,11 +90,17 @@ public class Serveur extends Thread {
         return result;
     }
     
-    public static String listerSalons() {
-        String listeSalons = "";
+    public static JSONArray listerSalons() {
+        JSONArray listeSalons = new JSONArray();
         synchronized (Serveur.salons) {
             for (Salon sal : Serveur.salons) {
-                listeSalons += sal.toString();
+                if (sal.nom != null) {
+                    JSONObject obj = new JSONObject();
+                    obj.put("name", sal.nom);
+                    obj.put("nbJoueurs", sal.getNbJoueurs());
+                    obj.put("nbJoueursMax", sal.getNbJoueursMax());
+                    listeSalons.add(obj);
+                }
             }
         }
         return listeSalons;

@@ -6,6 +6,13 @@ import java.net.*;
 import java.util.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import javax.swing.DefaultListModel;
+import javax.swing.JList;
+import javax.swing.JTextField;
+import javax.swing.ListModel;
+import org.json.simple.*;
+import org.json.simple.parser.*;
+
 
 /**
  * Classe qui gère la communication entre le serveur et le joueur, pour un joueur donné
@@ -42,7 +49,7 @@ public class Connexion extends Thread {
             boolean tmp = true;
             while (tmp) {
                 msg = this.in.readLine();
-                System.out.println(msg);
+                System.out.println("Réception : " + msg);
                 if (!msg.matches("pseudo::.*")) {
                     this.ecrireMessage("error::1::Pseudo attendu");
                 } else {
@@ -67,39 +74,88 @@ public class Connexion extends Thread {
             
             // Envoi liste salons
             
-            this.ecrireMessage("salon::liste" + Serveur.listerSalons());
+            this.ecrireMessage("salon::liste::" + Serveur.listerSalons().toJSONString());
+            
+            /*JSONParser pars = new JSONParser();
+            JSONArray listeSalons = (JSONArray) pars.parse("");
+            Iterator it = listeSalons.iterator();
+            while (it.hasNext()) {
+                JSONObject salon = (JSONObject) it.next();
+                JList li = new JList();
+                DefaultListModel model = new DefaultListModel();
+                model.addElement("Test");
+                model.addElement("Test1");
+                model.addElement("Test2");
+                li.setModel(model);
+            }*/
+            
+            String[] tmp2 = "test".split(";");
             
             tmp = true;
+            Salon salle = null;
             
             while (tmp) {
                 msg = this.in.readLine();
+                System.out.println("Réception : " + msg);
                 if (!msg.matches("salon::.*")) {
                     this.ecrireMessage("error::1::Salon attendu");
                 } else {
                     // Prise en compte choix client : Rafraichissement/Connexion/Création salon
                     if (msg.matches("salon::refresh")) {
-                        this.ecrireMessage("salon::liste" + Serveur.listerSalons());
+                        this.ecrireMessage("salon::liste::" + Serveur.listerSalons().toJSONString());
                     } else if (msg.matches("salon::connection::.*")) {
-                        
+                        synchronized(Serveur.salons) {
+                            String nomSalon = msg.split("::")[2];
+                            if (Serveur.isSalonPresent(nomSalon)) {
+                                for (Salon sal : Serveur.salons) {
+                                    if (sal.nom != null && sal.nom.equals(nomSalon)) {
+                                        salle = sal;
+                                    }
+                                }
+                                if (salle.ajoutJoueur(this)) {
+                                    this.ecrireMessage("salon::connection::ok");
+                                    tmp = false;
+                                } 
+                                else {
+                                    this.ecrireMessage("salon::connection::ko");
+                                }
+                            }
+                            else {
+                                this.ecrireMessage("salon::connection::ko");
+                            }
+                        }
                     } else if (msg.matches("salon::creation::.*")) {
                         String nomSalon = msg.split("::")[2];
                         int nbJoueurs = Integer.valueOf(msg.split("::")[3]);
                         synchronized(Serveur.salons) {
-                            // On nettoie les salons vides
-                            // Si il n'y a pas de salon adapté dispo, on en crée un
-                            Salon sa = new Salon(nomSalon,nbJoueurs);
-                            // On y ajoute le joueur de la connexion
-                            sa.ajoutJoueur(this);
-                            // Et on l'ajoute à la liste des salons
-                            Serveur.salons.add(sa);
-                            // Puis on le démarre
-                            sa.start();
+                            if (Serveur.isSalonPresent(nomSalon)) {
+                                // On signale au client que le nom du salon n'est pas disponible
+                                this.ecrireMessage("salon::creation::dispo::ko");
+                            } else {
+                                // On nettoie les salons vides
+                                // Si il n'y a pas de salon adapté dispo, on en crée un
+                                salle = new Salon(nomSalon,nbJoueurs);
+                                // On y ajoute le joueur de la connexion
+                                salle.ajoutJoueur(this);
+                                // Et on l'ajoute à la liste des salons
+                                Serveur.salons.add(salle);
+
+                                tmp = false;
+
+                                // Envoi du message de dispo du salon
+                                this.ecrireMessage("salon::creation::dispo::ok");
+                                // Puis on le démarre
+                                salle.start();
+                            }
                         }
                     } else {
                         this.ecrireMessage("error::2::Rafraichissement/Connexion/Création salon attendu");
                     }
                 }
             }
+            // Pour terminer l'exécution de Connexion
+            // On attend que le salon se soit achevé
+            salle.join();
         }
         catch (SocketException ex) {
             if (ex.getMessage().equals("Connection reset")) {
@@ -126,7 +182,7 @@ public class Connexion extends Thread {
      * @param msg Message à envoyer
      */
     public void ecrireMessage(String msg) {
-        System.out.println(msg);
+        System.out.println("Envoi : " + msg);
         out.println(msg);
     }
     
