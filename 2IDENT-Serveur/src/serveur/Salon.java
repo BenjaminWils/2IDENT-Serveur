@@ -21,7 +21,7 @@ import java.util.logging.Logger;
  */
 public class Salon extends Thread{
     
-    private ArrayList<Connexion> coJoueurs;
+    protected ArrayList<Connexion> coJoueurs;
     private int nbJoueurs;
     
     public String nom;
@@ -50,9 +50,15 @@ public class Salon extends Thread{
                 try {
                     // Démarre l'attente des joueurs
                     int joueursAttendus = this.getNbJoueursMax() - this.getNbJoueurs();
+                    int oldJoueursAttendus = 0;
                     // Sors de la boucle lorsqu'il est rempli
                     while (joueursAttendus != 0) {
-                        this.ecrireMessageAll("En attente de " + joueursAttendus + " joueurs.");
+                        if (joueursAttendus != oldJoueursAttendus) {
+                            // Envoi le nb de joueurs attendus aux joueurs
+                            // Seulement si ce nombre est différent de l'itération précédente
+                            this.ecrireMessageAll("salon::attente::joueurs::" + joueursAttendus);
+                            oldJoueursAttendus = joueursAttendus;
+                        }
                         sleep(500);
                         joueursAttendus = this.getNbJoueursMax() - this.getNbJoueurs();
                     }
@@ -60,9 +66,11 @@ public class Salon extends Thread{
                     // En attente de statut READY des clients
                     // On s'assure que tous les clients vont bien recevoir le message
                     // Permet de synchroniser les clients
-                    while (this.areReadyConnexions() == false) {
+                    /*
+                    while (this.areReadyConnections() == false) {
                         sleep(500);
                     }
+                    */
                     // Variables du jeu
                     int compteurs[] = new int[this.nbJoueurs];
                     int compteurTotal = 0;
@@ -78,7 +86,7 @@ public class Salon extends Thread{
                     }
                     this.ecrireMessageAll("::2S::Lancement de la partie !");
                     // En attente de statut READY des clients
-                    while (this.areReadyConnexions() == false) {
+                    while (this.areReadyConnections() == false) {
                         sleep(500);
                     }
                     sleep(200);
@@ -107,7 +115,7 @@ public class Salon extends Thread{
                         }
                         try {
                             // En attente de statut READY des clients
-                            while (this.areReadyConnexions() == false) {
+                            while (this.areReadyConnections() == false) {
                                 sleep(500);
                             }
                             flag2 = true;
@@ -138,7 +146,7 @@ public class Salon extends Thread{
                         }
                         try {
                             // En attente de statut READY des clients
-                            while (this.areReadyConnexions() == false) {
+                            while (this.areReadyConnections() == false) {
                                 sleep(500);
                             }
                             flag2 = true;
@@ -234,7 +242,7 @@ public class Salon extends Thread{
      * @return True si les connexions sont prêtes, False sinon
      * @throws IOException 
      */
-    public boolean areReadyConnexions() throws IOException {
+    public boolean areReadyConnections() throws IOException {
         boolean ready = true;
         synchronized(this.coJoueurs) {
             for (Connexion co : this.coJoueurs) {
