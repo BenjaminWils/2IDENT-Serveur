@@ -23,14 +23,22 @@ public class Salon extends Thread{
     
     private ArrayList<Connexion> coJoueurs;
     private int nbJoueurs;
+    
+    public String nom;
    
     /**
      * Constructeur : Initialise la liste des connexions des joueurs
      * @param nbJoueurs 
      */
-    public Salon(int nbJoueurs) {
+    public Salon(String nom, int nbJoueurs) {
+        this.nom = nom;
         this.nbJoueurs = nbJoueurs;
         this.coJoueurs = new ArrayList<>();
+    }
+
+    @Override
+    public String toString() {
+        return "::nbJoueursMax=" + nbJoueurs + ", nbJoueurs=" + String.valueOf(this.getNbJoueurs()) + ", nom=" + nom + "";
     }
     
     @Override

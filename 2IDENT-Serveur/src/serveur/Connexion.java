@@ -1,8 +1,3 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
 package serveur;
 
 import java.io.*;
@@ -43,23 +38,68 @@ public class Connexion extends Thread {
     public void run() {
         try {
             // Récupère le pseudo du joueur
-            String pseudo;
+            String pseudo, msg;
             boolean tmp = true;
             while (tmp) {
-                pseudo = this.in.readLine();
-                synchronized (Serveur.listeConnexions) {
-                    if (Serveur.isPseudoPresent(pseudo)) {
-                        this.ecrireMessage("pseudo::dispo::ko");
+                msg = this.in.readLine();
+                System.out.println(msg);
+                if (!msg.matches("pseudo::.*")) {
+                    this.ecrireMessage("error::1::Pseudo attendu");
+                } else {
+                    if (msg.matches("pseudo::validation::.*")) {
+                        pseudo = msg.split("pseudo::validation::")[1];
+                        synchronized (Serveur.listeConnexions) {
+                            if (Serveur.isPseudoPresent(pseudo) || pseudo.length() > 20) {
+                                this.ecrireMessage("pseudo::dispo::ko");
+                            }
+                            else {
+                                this.nomJoueur = pseudo;
+                                tmp = false;
+                            }
+                        }
+                    } else {
+                        this.ecrireMessage("error::2::Validation attendue");
                     }
-                    else {
-                        this.nomJoueur = pseudo;
-                        tmp = false;
-                    }
+                    
                 }
             }
             this.ecrireMessage("pseudo::dispo::ok");
             
+            // Envoi liste salons
             
+            this.ecrireMessage("salon::liste" + Serveur.listerSalons());
+            
+            tmp = true;
+            
+            while (tmp) {
+                msg = this.in.readLine();
+                if (!msg.matches("salon::.*")) {
+                    this.ecrireMessage("error::1::Salon attendu");
+                } else {
+                    // Prise en compte choix client : Rafraichissement/Connexion/Création salon
+                    if (msg.matches("salon::refresh")) {
+                        this.ecrireMessage("salon::liste" + Serveur.listerSalons());
+                    } else if (msg.matches("salon::connection::.*")) {
+                        
+                    } else if (msg.matches("salon::creation::.*")) {
+                        String nomSalon = msg.split("::")[2];
+                        int nbJoueurs = Integer.valueOf(msg.split("::")[3]);
+                        synchronized(Serveur.salons) {
+                            // On nettoie les salons vides
+                            // Si il n'y a pas de salon adapté dispo, on en crée un
+                            Salon sa = new Salon(nomSalon,nbJoueurs);
+                            // On y ajoute le joueur de la connexion
+                            sa.ajoutJoueur(this);
+                            // Et on l'ajoute à la liste des salons
+                            Serveur.salons.add(sa);
+                            // Puis on le démarre
+                            sa.start();
+                        }
+                    } else {
+                        this.ecrireMessage("error::2::Rafraichissement/Connexion/Création salon attendu");
+                    }
+                }
+            }
         }
         catch (SocketException ex) {
             if (ex.getMessage().equals("Connection reset")) {
@@ -86,6 +126,7 @@ public class Connexion extends Thread {
      * @param msg Message à envoyer
      */
     public void ecrireMessage(String msg) {
+        System.out.println(msg);
         out.println(msg);
     }
     

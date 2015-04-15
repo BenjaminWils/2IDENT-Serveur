@@ -69,11 +69,33 @@ public class Serveur extends Thread {
         boolean result = false;
         synchronized(listeConnexions) {
             for (Connexion co : listeConnexions) {
-                if (co.nomJoueur.equals(pseudo)) {
+                if (co.nomJoueur != null && co.nomJoueur.equals(pseudo)) {
                     result = true;
                 }
             }
         }
         return result;
+    }
+    
+    public static boolean isSalonPresent(String nom) {
+        boolean result = false;
+        synchronized(salons) {
+            for (Salon sal : salons) {
+                if (sal.nom.equals(nom)) {
+                    result = true;
+                }
+            }
+        }
+        return result;
+    }
+    
+    public static String listerSalons() {
+        String listeSalons = "";
+        synchronized (Serveur.salons) {
+            for (Salon sal : Serveur.salons) {
+                listeSalons += sal.toString();
+            }
+        }
+        return listeSalons;
     }
 }
