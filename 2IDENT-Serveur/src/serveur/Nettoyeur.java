@@ -21,12 +21,10 @@ public class Nettoyeur extends Thread {
             try {
                 // Patiente 5 secondes
                 Thread.currentThread().sleep(5000);
-                System.out.println("Nettoyage Connexions");
                 // Nettoie les connexions du serveur
                 nettoyerConnexions();
                 // Patiente 5 secondes
                 Thread.currentThread().sleep(5000);
-                System.out.println("Nettoyage Salons");
                 // Nettoie les salons inactifs du serveur
                 nettoyerSalons();
             } catch (InterruptedException ex) {
