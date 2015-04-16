@@ -6,4 +6,7 @@ package jeu;
  */
 public class Defausse {
 
+    public Defausse() {
+        
+    }
 }

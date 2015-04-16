@@ -10,6 +10,7 @@ import javax.swing.DefaultListModel;
 import javax.swing.JList;
 import javax.swing.JTextField;
 import javax.swing.ListModel;
+import jeu.TypeRole;
 import org.json.simple.*;
 import org.json.simple.parser.*;
 
@@ -29,7 +30,9 @@ public class Connexion extends Thread {
     private int mode;
     private int nbJoueurs;
     public String nomJoueur;
+    public TypeRole role;
     private Salon salle;
+    public String currentMsg;
     
     /**
      * Constructeur : Initialise les flux d'entrée/sortie du socket, et le chargement des questions
@@ -40,6 +43,7 @@ public class Connexion extends Thread {
         this.cl = cl;
         this.in = new BufferedReader(new InputStreamReader(this.cl.getInputStream()));
         this.out = new PrintWriter(cl.getOutputStream(), true);
+        this.role = TypeRole.Neutre;
     }
 
     @Override
@@ -174,16 +178,19 @@ public class Connexion extends Thread {
             // Ecoute des messages du client
             msg = this.in.readLine();
             testSocket(msg);
-            
-            if (msg.matches("chat::.*")) {
-                String contenu = msg.split("::")[1];
-                this.salle.ecrireMessageAll("chat::" + this.nomJoueur + "::" + contenu);
-            }
-            else if (msg.matches("jeu::.*")) {
-                
-            }
-            else {
-                this.ecrireMessage("erreur::Type inattendu");
+            this.currentMsg = msg;
+            while ((msg != null) && (!msg.matches("connection::fin::.*"))){
+                if (msg.matches("chat::.*")) {
+                    String contenu = msg.split("::")[1];
+                    this.salle.ecrireMessageAll("chat::" + this.nomJoueur + "::" + contenu);
+                }
+                else if (msg.matches("jeu::.*")) {
+                    this.salle.notify();
+                }
+                else {
+                    this.ecrireMessage("erreur::Type inattendu");
+                }
+                msg = this.in.readLine();
             }
         }
         catch (SocketException ex) {

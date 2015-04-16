@@ -11,9 +11,14 @@ import static java.lang.Thread.sleep;
 import java.net.Socket;
 import java.net.SocketException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+
+import jeu.*;
+import org.json.simple.JSONArray;
+import org.json.simple.JSONObject;
 
 /**
  *
@@ -21,7 +26,12 @@ import java.util.logging.Logger;
  */
 public class Salon extends Thread{
     
-    private ArrayList<Connexion> coJoueurs;
+    public ArrayList<Connexion> coJoueurs;
+    public Moderateur modo;
+    public CollectionCartes cartes;
+    public jeu.Main mains;
+    
+    
     private int nbJoueurs;
     
     public String nom;
@@ -66,14 +76,23 @@ public class Salon extends Thread{
                     // En attente de statut READY des clients
                     // On s'assure que tous les clients vont bien recevoir le message
                     // Permet de synchroniser les clients
-                    while (this.areReadyConnections() == false) {
+                    /*while (this.areReadyConnections() == false) {
                         sleep(500);
-                    }
+                    }*/
                     
                     this.ecrireMessageAll("jeu::demarrage");
                     
+                    this.modo = new Moderateur(this);
+                    this.cartes = new CollectionCartes();
+                    this.mains = new jeu.Main(this.modo.distribution());
+                    
+                    this.ecrireMessageAll("jeu::infosJoueurs::" + this.listerJoueurs().toJSONString());
+                    
+                    // Attente d'infos des joueurs
+                    wait();
                     
                 } catch (SocketException e) {
+                    System.out.println("Passage socket");
                     // Atteint dès lors qu'un client a été déconnecté
                     synchronized(this.coJoueurs) {
                         ArrayList<Connexion> tmp = this.checkConnexions();
@@ -85,6 +104,7 @@ public class Salon extends Thread{
                     }
                     this.nettoyage();
                 } catch (IOException e) {
+                    System.out.println("Passage IO");
                     // Atteint dès lors qu'un client a été déconnecté
                     synchronized(this.coJoueurs) {
                         ArrayList<Connexion> tmp = this.checkConnexions();
@@ -213,5 +233,19 @@ public class Salon extends Thread{
                 co.ecrireMessage(msg);
             }
         }
+    }
+    
+    public JSONArray listerJoueurs() {
+        JSONArray listeJoueurs = new JSONArray();
+        synchronized (this.coJoueurs) {
+            for (Connexion co : this.coJoueurs) {
+                JSONObject obj = new JSONObject();
+                obj.put("pseudo", co.nomJoueur);
+                obj.put("role", co.role.toString());
+                obj.put("nbCartes", this.mains.getMainJoueur(co.nomJoueur).size());
+                listeJoueurs.add(obj);
+            }
+        }
+        return listeJoueurs;
     }
 }
