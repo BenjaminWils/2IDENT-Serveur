@@ -50,6 +50,7 @@ public class Connexion extends Thread {
             boolean tmp = true;
             while (tmp) {
                 msg = this.in.readLine();
+                testSocket(msg);
                 System.out.println("Réception : " + msg);
                 if (!msg.matches("pseudo::.*")) {
                     this.ecrireMessage("error::1::Pseudo attendu");
@@ -95,6 +96,7 @@ public class Connexion extends Thread {
             
             while (tmp) {
                 msg = this.in.readLine();
+                testSocket(msg);
                 System.out.println("Réception : " + msg);
                 if (!msg.matches("salon::.*")) {
                     this.ecrireMessage("salon::erreur::Type Salon attendu");
@@ -113,6 +115,7 @@ public class Connexion extends Thread {
                                 }
                                 if (salle.ajoutJoueur(this)) {
                                     this.ecrireMessage("salon::connection::ok");
+                                    this.salle = salle;
                                     tmp = false;
                                 } 
                                 else {
@@ -170,9 +173,17 @@ public class Connexion extends Thread {
             
             // Ecoute des messages du client
             msg = this.in.readLine();
+            testSocket(msg);
+            
             if (msg.matches("chat::.*")) {
                 String contenu = msg.split("::")[1];
                 this.salle.ecrireMessageAll("chat::" + this.nomJoueur + "::" + contenu);
+            }
+            else if (msg.matches("jeu::.*")) {
+                
+            }
+            else {
+                this.ecrireMessage("erreur::Type inattendu");
             }
         }
         catch (SocketException ex) {
@@ -268,12 +279,12 @@ public class Connexion extends Thread {
      */
     public boolean isReady() throws IOException, SocketException {
         boolean result = false;
-        this.ecrireMessage("::READY::");
+        this.ecrireMessage("READY");
         String line = this.in.readLine();
         if (line == null) {
             throw new SocketException("Socket client fermé");
         }
-        if (line.contains("::READY::")) {
+        if (line.contains("READY")) {
             result = true;
         }
         return result;

@@ -21,7 +21,7 @@ import java.util.logging.Logger;
  */
 public class Salon extends Thread{
     
-    protected ArrayList<Connexion> coJoueurs;
+    private ArrayList<Connexion> coJoueurs;
     private int nbJoueurs;
     
     public String nom;
@@ -66,99 +66,35 @@ public class Salon extends Thread{
                     // En attente de statut READY des clients
                     // On s'assure que tous les clients vont bien recevoir le message
                     // Permet de synchroniser les clients
-                    /*
                     while (this.areReadyConnections() == false) {
                         sleep(500);
                     }
-                    */
-                    // Variables du jeu
-                    int compteurs[] = new int[this.nbJoueurs];
-                    int compteurTotal = 0;
-                    synchronized(this.coJoueurs) {
-                        // Renseigne le nom des joueurs
-                        String chaineAdversaires = "::SALON";
-                        for (Connexion co : this.coJoueurs) {
-                            chaineAdversaires += "::" + co.getNomJoueur();
-                        }
-                        // Envoie l'entrée en mode salon
-                        this.ecrireMessageAll(chaineAdversaires);
-                        
-                    }
-                    this.ecrireMessageAll("::2S::Lancement de la partie !");
-                    // En attente de statut READY des clients
-                    while (this.areReadyConnections() == false) {
-                        sleep(500);
-                    }
-                    sleep(200);
                     
-                    // On signale la fin du mode salon
-                    this.ecrireMessageAll("::!SALON::");
-                    // On indique l'arrêt
-                    this.ecrireMessageAll("::DESTROY::");
+                    this.ecrireMessageAll("jeu::demarrage");
+                    
+                    
                 } catch (SocketException e) {
                     // Atteint dès lors qu'un client a été déconnecté
-                    this.ecrireMessageAll("::3S::Un client s'est déconnecté. Reprise de la file d'attente...");
-                    boolean flag2 = false;
-                    while (flag2 == false) {
-                        // Tant que les connexions ne sont pas supprimées de la liste
-                        // On vérifie l'état des connexions
-                        boolean flag = false;
-                        while (flag == false) {
-                            this.nettoyage();
-                            try {
-                                this.checkConnexions();
-                                flag = true;
-                            } catch (SocketException ex) {
-                                flag = false;
+                    synchronized(this.coJoueurs) {
+                        ArrayList<Connexion> tmp = this.checkConnexions();
+                        if (tmp.size() > 0) {
+                            for (Connexion co : tmp) {
+                                this.ecrireMessageAll("salon::deconnection::" + co.nomJoueur);
                             }
-                            sleep(500);
-                        }
-                        try {
-                            // En attente de statut READY des clients
-                            while (this.areReadyConnections() == false) {
-                                sleep(500);
-                            }
-                            flag2 = true;
-                        }
-                        catch (SocketException er) {
-                            flag2 = false;
-                        }
-                        catch (IOException er) {
-                            flag2 = false;
                         }
                     }
-                    // On indique la sortie du mode salon (permet de reprendre l'attente)
-                    this.ecrireMessageAll("::!SALON::");
+                    this.nettoyage();
                 } catch (IOException e) {
-                    this.ecrireMessageAll("::3S::Un client s'est déconnecté. Reprise de la file d'attente...");
-                    boolean flag2 = false;
-                    while (flag2 == false) {
-                        boolean flag = false;
-                        while (flag == false) {
-                            this.nettoyage();
-                            try {
-                                this.checkConnexions();
-                                flag = true;
-                            } catch (SocketException ex) {
-                                flag = false;
+                    // Atteint dès lors qu'un client a été déconnecté
+                    synchronized(this.coJoueurs) {
+                        ArrayList<Connexion> tmp = this.checkConnexions();
+                        if (tmp.size() > 0) {
+                            for (Connexion co : tmp) {
+                                this.ecrireMessageAll("salon::deconnection::" + co.nomJoueur);
                             }
-                            sleep(500);
-                        }
-                        try {
-                            // En attente de statut READY des clients
-                            while (this.areReadyConnections() == false) {
-                                sleep(500);
-                            }
-                            flag2 = true;
-                        }
-                        catch (SocketException er) {
-                            flag2 = false;
-                        }
-                        catch (IOException er) {
-                            flag2 = false;
                         }
                     }
-                    this.ecrireMessageAll("::!SALON::");
+                    this.nettoyage();
                 }
             }
         }
@@ -227,14 +163,16 @@ public class Salon extends Thread{
      * Vérifie que toutes les connexions sont ouvertes, et lève une exception dans le cas contraire
      * @throws SocketException 
      */
-    public void checkConnexions() throws SocketException {
+    public ArrayList<Connexion> checkConnexions() throws SocketException {
+        ArrayList<Connexion> cos = new ArrayList<Connexion>();
         synchronized(this.coJoueurs) {
             for (Connexion co : this.coJoueurs) {
                 if (co.isSocketClosed()) {
-                    throw new SocketException("Socket Client fermé");
+                    cos.add(co);
                 }
             }
         }
+        return cos;
     }
     
     /**
