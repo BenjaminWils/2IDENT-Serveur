@@ -31,7 +31,7 @@ public class Connexion extends Thread {
     private int nbJoueurs;
     public String nomJoueur;
     public TypeRole role;
-    private Salon salle;
+    public Salon salle;
     public String currentMsg;
     
     /**
@@ -94,103 +94,110 @@ public class Connexion extends Thread {
                 model.addElement("Test2");
                 li.setModel(model);
             }*/
-            
-            tmp = true;
-            Salon salle = null;
-            
-            while (tmp) {
-                msg = this.in.readLine();
-                testSocket(msg);
-                System.out.println("Réception : " + msg);
-                if (!msg.matches("salon::.*")) {
-                    this.ecrireMessage("salon::erreur::Type Salon attendu");
-                } else {
-                    // Prise en compte choix client : Rafraichissement/Connexion/Création salon
-                    if (msg.matches("salon::refresh")) {
-                        this.ecrireMessage("salon::liste::" + Serveur.listerSalons().toJSONString());
-                    } else if (msg.matches("salon::connection::.*")) {
-                        synchronized(Serveur.salons) {
-                            String nomSalon = msg.split("::")[2];
-                            if (Serveur.isSalonPresent(nomSalon)) {
-                                for (Salon sal : Serveur.salons) {
-                                    if (sal.nom != null && sal.nom.equals(nomSalon)) {
-                                        salle = sal;
-                                    }
-                                }
-                                if (salle.ajoutJoueur(this)) {
-                                    this.ecrireMessage("salon::connection::ok");
-                                    this.salle = salle;
-                                    tmp = false;
-                                } 
-                                else {
-                                    this.ecrireMessage("salon::connection::erreur::Salon plein !");
-                                }
-                            }
-                            else {
-                                this.ecrireMessage("salon::connection::erreur::Salon inexistant !");
-                            }
-                        }
-                    } else if (msg.matches("salon::creation::.*")) {
-                        String nomSalon = msg.split("::")[2];
-                        int nbJoueurs = Integer.valueOf(msg.split("::")[3]);
-                        synchronized(Serveur.salons) {
-                            if (nomSalon.length() > 15) {
-                                this.ecrireMessage("salon::creation::erreur::Nom de salon trop long !");
-                            }
-                            else if ("".equals(nomSalon)) {
-                                this.ecrireMessage("salon::creation::erreur::Nom de salon manquant !");
-                            }
-                            else if (nomSalon.contains("  ")) {
-                                this.ecrireMessage("salon::creation::erreur::Nom de salon incorrect !");
-                            }
-                            else if (nbJoueurs < 3 || nbJoueurs > 10) {
-                                this.ecrireMessage("salon::creation::erreur::Nombre de joueurs invalide !");
-                            }
-                            else if (Serveur.isSalonPresent(nomSalon)) {
-                                // On signale au client que le nom du salon n'est pas disponible
-                                this.ecrireMessage("salon::creation::erreur::Nom de salon déjà pris !");
-                            } else {
-                                // On nettoie les salons vides
-                                // Si il n'y a pas de salon adapté dispo, on en crée un
-                                salle = new Salon(nomSalon,nbJoueurs);
-                                // On y ajoute le joueur de la connexion
-                                salle.ajoutJoueur(this);
-                                // Et on l'ajoute à la liste des salons
-                                Serveur.salons.add(salle);
-                                this.salle = salle;
+            boolean fin = false;
+            while (!fin) {
+                tmp = true;
+                Salon salle = null;
 
-                                tmp = false;
-
-                                // Envoi du message de dispo du salon
-                                this.ecrireMessage("salon::creation::ok");
-                                // Puis on le démarre
-                                salle.start();
-                            }
-                        }
+                while (tmp) {
+                    msg = this.in.readLine();
+                    testSocket(msg);
+                    System.out.println("Réception : " + msg);
+                    if (!msg.matches("salon::.*")) {
+                        this.ecrireMessage("salon::erreur::Type Salon attendu");
                     } else {
-                        this.ecrireMessage("salon::erreur::Rafraichissement/Connexion/Création salon attendu");
+                        // Prise en compte choix client : Rafraichissement/Connexion/Création salon
+                        if (msg.matches("salon::refresh")) {
+                            this.ecrireMessage("salon::liste::" + Serveur.listerSalons().toJSONString());
+                        } else if (msg.matches("salon::connection::.*")) {
+                            synchronized (Serveur.salons) {
+                                String nomSalon = msg.split("::")[2];
+                                if (Serveur.isSalonPresent(nomSalon)) {
+                                    for (Salon sal : Serveur.salons) {
+                                        if (sal.nom != null && sal.nom.equals(nomSalon)) {
+                                            salle = sal;
+                                        }
+                                    }
+                                    if (salle.ajoutJoueur(this)) {
+                                        this.ecrireMessage("salon::connection::ok");
+                                        this.salle = salle;
+                                        tmp = false;
+                                    } else {
+                                        this.ecrireMessage("salon::connection::erreur::Salon plein !");
+                                    }
+                                } else {
+                                    this.ecrireMessage("salon::connection::erreur::Salon inexistant !");
+                                }
+                            }
+                        } else if (msg.matches("salon::creation::.*")) {
+                            String nomSalon = msg.split("::")[2];
+                            int nbJoueurs = Integer.valueOf(msg.split("::")[3]);
+                            synchronized (Serveur.salons) {
+                                if (nomSalon.length() > 15) {
+                                    this.ecrireMessage("salon::creation::erreur::Nom de salon trop long !");
+                                } else if ("".equals(nomSalon)) {
+                                    this.ecrireMessage("salon::creation::erreur::Nom de salon manquant !");
+                                } else if (nomSalon.contains("  ")) {
+                                    this.ecrireMessage("salon::creation::erreur::Nom de salon incorrect !");
+                                } else if (nbJoueurs < 3 || nbJoueurs > 10) {
+                                    this.ecrireMessage("salon::creation::erreur::Nombre de joueurs invalide !");
+                                } else if (Serveur.isSalonPresent(nomSalon)) {
+                                    // On signale au client que le nom du salon n'est pas disponible
+                                    this.ecrireMessage("salon::creation::erreur::Nom de salon déjà pris !");
+                                } else {
+                                    // On nettoie les salons vides
+                                    // Si il n'y a pas de salon adapté dispo, on en crée un
+                                    salle = new Salon(nomSalon, nbJoueurs);
+                                    // On y ajoute le joueur de la connexion
+                                    salle.ajoutJoueur(this);
+                                    // Et on l'ajoute à la liste des salons
+                                    Serveur.salons.add(salle);
+                                    this.salle = salle;
+
+                                    tmp = false;
+
+                                    // Envoi du message de dispo du salon
+                                    this.ecrireMessage("salon::creation::ok");
+                                    // Puis on le démarre
+                                    salle.start();
+                                }
+                            }
+                        } else {
+                            this.ecrireMessage("salon::erreur::Rafraichissement/Connexion/Création salon attendu");
+                        }
                     }
                 }
-            }
-            
-            // A partir d'ici, le client est connecté à un salon
-            
-            // Ecoute des messages du client
-            msg = this.in.readLine();
-            testSocket(msg);
-            this.currentMsg = msg;
-            while ((msg != null) && (!msg.matches("connection::fin::.*"))){
-                if (msg.matches("chat::.*")) {
-                    String contenu = msg.split("::")[1];
-                    this.salle.ecrireMessageAll("chat::" + this.nomJoueur + "::" + contenu);
-                }
-                else if (msg.matches("jeu::.*")) {
-                    this.salle.notify();
-                }
-                else {
-                    this.ecrireMessage("erreur::Type inattendu");
-                }
+
+                // A partir d'ici, le client est connecté à un salon
+                // Ecoute des messages du client
                 msg = this.in.readLine();
+                testSocket(msg);
+                this.currentMsg = msg;
+                while ((msg != null) && (this.salle != null) && (!msg.matches("connection::fin::.*"))) {
+                    if (msg.matches("chat::.*")) {
+                        String contenu = msg.split("::")[1];
+                        this.salle.ecrireMessageAll("chat::" + this.nomJoueur + "::" + contenu);
+                    } else if (msg.matches("READY")) {
+                        this.salle.repondre(this);
+                    } else if (msg.matches("salon::reprise::.*")) {
+                        // Gestion de la reprise de jeu Salon
+                        if (msg.equals("salon::reprise::oui")) {
+                            this.salle.repondre(this);
+                        } else if (msg.equals("salon::reprise::non")) {
+                            this.salle.repondre(this);
+                            this.salle.voterContre();
+                        }
+                    } else if (msg.matches("jeu::.*")) {
+                        this.salle.semaphore.release();
+                    } else {
+                        this.ecrireMessage("erreur::Type inattendu");
+                    }
+                    msg = this.in.readLine();
+                }
+                
+                if (msg.matches("connection::fin::.*")) {
+                    fin = true;
+                }
             }
         }
         catch (SocketException ex) {
@@ -206,6 +213,11 @@ public class Connexion extends Thread {
         }
         finally {
             try {
+                if (this.salle != null) {
+                    if (this.salle.semaphore.hasQueuedThreads()) {
+                        this.salle.semaphore.release();
+                    }
+                }
                 cl.close();
             } catch (IOException ex) {
                 System.out.println(ex.getMessage());

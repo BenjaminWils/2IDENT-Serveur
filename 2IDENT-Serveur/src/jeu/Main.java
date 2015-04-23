@@ -2,6 +2,8 @@ package jeu;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import org.json.simple.JSONArray;
+import org.json.simple.JSONObject;
 
 /**
  *
@@ -29,5 +31,28 @@ public class Main {
             cartes.remove(ca);
         }
         return cartes;
+    }
+    
+    public JSONArray listerCartes(String pseudo) {
+        JSONArray listeCartes = new JSONArray();
+        ArrayList<Carte> cartes = this.getMainJoueur(pseudo);
+        for (Carte ca : cartes) {
+            JSONObject obj = new JSONObject();
+            obj.put("couleur", ca.getCouleur());
+            obj.put("hauteur", ca.getHauteur());
+            listeCartes.add(obj);
+        }
+        return listeCartes;
+    }
+    
+    public JSONArray listerCartes(ArrayList<Carte> cartes) {
+        JSONArray listeCartes = new JSONArray();
+        for (Carte ca : cartes) {
+            JSONObject obj = new JSONObject();
+            obj.put("couleur", ca.getCouleur());
+            obj.put("hauteur", ca.getHauteur());
+            listeCartes.add(obj);
+        }
+        return listeCartes;
     }
 }

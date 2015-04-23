@@ -2,6 +2,7 @@ package jeu;
 
 import java.util.ArrayList;
 import java.util.Iterator;
+import org.json.simple.JSONArray;
 
 /**
  *
@@ -155,5 +156,5 @@ public class CollectionCartes {
             }
         }
         return result;
-    }
+    } 
 }

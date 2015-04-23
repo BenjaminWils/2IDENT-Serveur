@@ -17,4 +17,17 @@ public class Carte {
     public String toString() {
         return this.hauteur + "-" + this.couleur;
     }
+    
+    public String getCouleur() {
+        return this.couleur;
+    }
+    
+    public String getHauteur() {
+        return this.hauteur;
+    }
+    
+    public static Carte parserCarte(String ca) {
+        Carte c = new Carte(ca.split("-")[0], ca.split("-")[1]);
+        return c;
+    }
 }
