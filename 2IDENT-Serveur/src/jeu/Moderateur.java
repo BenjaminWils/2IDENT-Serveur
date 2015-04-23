@@ -3,6 +3,8 @@ package jeu;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Random;
+import org.json.simple.JSONArray;
+import org.json.simple.JSONObject;
 import serveur.*;
 
 /**
@@ -92,7 +94,30 @@ public class Moderateur {
     
     public boolean carteAutorisee(ArrayList<Carte> cartes) {
         boolean flag = false;
-        
+        ArrayList<Carte> defossees = this.salle.fosse.getDerniersCartesPosees();
+        if (defossees.size() == 0 || defossees.size() == 4 || (defossees.size() > 0 && defossees.get(0).equals("2"))) {
+            // -> nouvelle session
+            // tout nb de cartes entre 1 et 4 autorisé
+            // toute hauteur autorisée 
+        }
+        else if (defossees.size() == 1) {
+            // tout nb de cartes entre 1 et 4 autorisé
+            // si hauteur identique, entre 1 et 3 cartes
+            // si hauteur supérieure, entre 1 et 4 cartes
+            
+        }
+        else if (defossees.size() == 2) {
+            // nb de cartes entre 2 et 4 autorisé
+            // si hauteur identique, entre 1 et 2 cartes
+            // si hauteur supérieure, entre 1 et 4 cartes
+            
+        }
+        else if (defossees.size() == 3) {
+            // nb de cartes entre 3 et 4 autorisé
+            // hauteur supérieure uniquement, entre 1 et 4 cartes
+            
+        }
+
         return flag;
     }
     
@@ -109,5 +134,141 @@ public class Moderateur {
             }
         }
         return co;
+    }
+    
+    public ArrayList<ArrayList<Carte>> combinaisonsAutorisees(ArrayList<Carte> main) {
+        ArrayList<ArrayList<Carte>> combinaisons = new ArrayList();
+        ArrayList<Carte> cartes = null;
+        if (main.size() > 3) {
+            for (int i = 0; i < main.size(); i++) {
+                for (int j = 0; j < main.size(); j++) {
+                    for (int k = 0; k < main.size(); k++) {
+                        for (int l = 0; l < main.size(); l++) {
+                            if (i != j && i != k && i != l && j != k && j != l && k != l) {
+                                cartes = new ArrayList();
+                                cartes.add(main.get(i));
+                                cartes.add(main.get(j));
+                                cartes.add(main.get(k));
+                                cartes.add(main.get(l));
+                                if (this.carteAutorisee(cartes)) {
+                                    combinaisons.add(cartes);
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            for (int i = 0; i < main.size(); i++) {
+                for (int j = 0; j < main.size(); j++) {
+                    for (int k = 0; k < main.size(); k++) {
+                        if (i != j && i != k && j != k) {
+                            cartes = new ArrayList();
+                            cartes.add(main.get(i));
+                            cartes.add(main.get(j));
+                            cartes.add(main.get(k));
+                            if (this.carteAutorisee(cartes)) {
+                                combinaisons.add(cartes);
+                            }
+                        }
+                    }
+                }
+            }
+            for (int i = 0; i < main.size(); i++) {
+                for (int j = 0; j < main.size(); j++) {
+                    if (i != j) {
+                        cartes = new ArrayList();
+                        cartes.add(main.get(i));
+                        cartes.add(main.get(j));
+                        if (this.carteAutorisee(cartes)) {
+                            combinaisons.add(cartes);
+                        }
+                    }
+                }
+            }
+            for (int i = 0; i < main.size(); i++) {
+                cartes = new ArrayList();
+                cartes.add(main.get(i));
+                if (this.carteAutorisee(cartes)) {
+                    combinaisons.add(cartes);
+                }
+            }
+        } else if (main.size() == 3) {
+            for (int i = 0; i < main.size(); i++) {
+                for (int j = 0; j < main.size(); j++) {
+                    for (int k = 0; k < main.size(); k++) {
+                        if (i != j && i != k && j != k) {
+                            cartes = new ArrayList();
+                            cartes.add(main.get(i));
+                            cartes.add(main.get(j));
+                            cartes.add(main.get(k));
+                            if (this.carteAutorisee(cartes)) {
+                                combinaisons.add(cartes);
+                            }
+                        }
+                    }
+                }
+            }
+            for (int i = 0; i < main.size(); i++) {
+                for (int j = 0; j < main.size(); j++) {
+                    if (i != j) {
+                        cartes = new ArrayList();
+                        cartes.add(main.get(i));
+                        cartes.add(main.get(j));
+                        if (this.carteAutorisee(cartes)) {
+                            combinaisons.add(cartes);
+                        }
+                    }
+                }
+            }
+            for (int i = 0; i < main.size(); i++) {
+                cartes = new ArrayList();
+                cartes.add(main.get(i));
+                if (this.carteAutorisee(cartes)) {
+                    combinaisons.add(cartes);
+                }
+            }
+        } else if (main.size() == 2) {
+            for (int i = 0; i < main.size(); i++) {
+                for (int j = 0; j < main.size(); j++) {
+                    if (i != j) {
+                        cartes = new ArrayList();
+                        cartes.add(main.get(i));
+                        cartes.add(main.get(j));
+                        if (this.carteAutorisee(cartes)) {
+                            combinaisons.add(cartes);
+                        }
+                    }
+                }
+            }
+            for (int i = 0; i < main.size(); i++) {
+                cartes = new ArrayList();
+                cartes.add(main.get(i));
+                if (this.carteAutorisee(cartes)) {
+                    combinaisons.add(cartes);
+                }
+            }
+        } else if (main.size() == 1) {
+            cartes = new ArrayList();
+            cartes.add(main.get(0));
+            if (this.carteAutorisee(cartes)) {
+                combinaisons.add(cartes);
+            }
+        }
+        return combinaisons;
+    }
+    
+    public JSONArray listerCombinaisons(ArrayList<ArrayList<Carte>> combinaisons) {
+        JSONArray listeCombinaisons = new JSONArray();
+        for (ArrayList<Carte> cartes : combinaisons) {
+            JSONArray listeCartes = new JSONArray();
+            for (Carte ca : cartes) {
+                JSONObject obj = new JSONObject();
+                obj.put("couleur", ca.getCouleur());
+                obj.put("hauteur", ca.getHauteur());
+                listeCartes.add(obj);
+            }
+            listeCombinaisons.add(listeCartes);
+        }
+        return listeCombinaisons;
     }
 }

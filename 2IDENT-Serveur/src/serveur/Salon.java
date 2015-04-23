@@ -31,6 +31,7 @@ public class Salon extends Thread{
     public Moderateur modo;
     public CollectionCartes cartes;
     public jeu.Main mains;
+    public Defausse fosse;
     
     public Semaphore semaphore;
     
@@ -123,6 +124,7 @@ public class Salon extends Thread{
                     this.cartes = new CollectionCartes();
                     // Distribue les cartes pour chaque joueur (une main pour chaque joueur)
                     this.mains = new jeu.Main(this.modo.premiereDistribution());
+                    this.fosse = new Defausse();
                     // Signale le début de la session de jeu
                     this.modo.debutSession();
                     
@@ -155,38 +157,9 @@ public class Salon extends Thread{
                     // Informe le joueur dont c'est le tour des cartes qu'il peut jouer
                     // /!\ Réflexion en terme de combinaisons de carte
                     ArrayList<Carte> main = this.mains.getMainJoueur(tourJoueur.nomJoueur);
-                    if (main.size() > 3) {
-                        for (int i = 0; i < main.size(); i++) {
-                            for (int j = 0; j < main.size(); j++) {
-                                for (int k = 0; k < main.size(); k++) {
-                                    for (int l = 0; l < main.size(); l++) {
-                                        
-                                    }
-                                }
-                            }
-                        }
-                    }
-                    else if (main.size() == 3) {
-                        for (int i = 0; i < main.size(); i++) {
-                            for (int j = 0; j < main.size(); j++) {
-                                for (int k = 0; k < main.size(); k++) {
-                                    
-                                }
-                            }
-                        }
-                    }
-                    else if (main.size() == 2) {
-                        for (int i = 0; i < main.size(); i++) {
-                            for (int j = 0; j < main.size(); j++) {
-                                
-                            }
-                        }
-                    }
-                    else if (main.size() == 1) {
-                        
-                    }
+                    ArrayList<ArrayList<Carte>> combinaisons = this.modo.combinaisonsAutorisees(main);
                     
-                    this.ecrireMessage(tourJoueur, "jeu: :cartesJouables::" + this.mains.listerCartes(main).toJSONString());
+                    this.ecrireMessage(tourJoueur, "jeu::cartesJouables::" + this.modo.listerCombinaisons(combinaisons).toJSONString());
                     
                     // Attente d'infos du joueur dont c'est le tour
                     this.semaphore.acquire();
