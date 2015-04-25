@@ -25,27 +25,28 @@ import org.json.simple.JSONObject;
  *
  * @author Benjamin
  */
-public class Salon extends Thread{
-    
+public class Salon extends Thread {
+
     public ArrayList<Connexion> coJoueurs;
     public Moderateur modo;
     public CollectionCartes cartes;
     public jeu.Main mains;
     public Defausse fosse;
-    
+
     public Semaphore semaphore;
-    
+
     public boolean aSyncRep = false;
-    
+
     private ArrayList<Connexion> reponses;
     private int nbReponsesNeg;
     private int nbJoueurs;
-    
+
     public String nom;
-   
+
     /**
      * Constructeur : Initialise la liste des connexions des joueurs
-     * @param nbJoueurs 
+     *
+     * @param nbJoueurs
      */
     public Salon(String nom, int nbJoueurs) {
         this.nom = nom;
@@ -59,7 +60,7 @@ public class Salon extends Thread{
     public String toString() {
         return "::nbJoueursMax=" + nbJoueurs + ", nbJoueurs=" + String.valueOf(this.getNbJoueurs()) + ", nom=" + nom;
     }
-    
+
     @Override
     public void run() {
         System.out.println("Salon démarré");
@@ -74,7 +75,7 @@ public class Salon extends Thread{
                         // Si la déconnexion d'un joueur a interrompu une partie précédente
                         this.nbJoueurs = this.getNbJoueurs();
                         this.ecrireMessageAll("salon::reprise");
-                        
+
                         tentatives = 0;
                         this.nbReponsesNeg = 0;
                         this.reponses.clear();
@@ -83,7 +84,7 @@ public class Salon extends Thread{
                             tentatives++;
                             this.aSyncAreReadyConnections();
                         }
-                        
+
                         if (this.nbReponsesNeg > 0) {
                             this.ecrireMessageAll("salon::fin");
                             synchronized (this.coJoueurs) {
@@ -94,9 +95,9 @@ public class Salon extends Thread{
                             throw new Exception("Salon terminé");
                         }
                     }
-                    
+
                     System.out.println("File d'attente");
-                    
+
                     // Démarre l'attente des joueurs
                     int joueursAttendus = this.getNbJoueursMax() - this.getNbJoueurs();
                     int oldJoueursAttendus = 0;
@@ -111,105 +112,197 @@ public class Salon extends Thread{
                         sleep(500);
                         joueursAttendus = this.getNbJoueursMax() - this.getNbJoueurs();
                     }
-                    
+
                     // En attente de statut READY des clients
                     // On s'assure que tous les clients vont bien recevoir le message
                     // Permet de synchroniser les clients
                     /*
-                    if (!this.areReadyConnections(5)) {
-                        throw new SocketException("Absence de réponse d'un/de joueur(s)");
-                    }
-                    */
-                    
-                    if (premierePartie) {
-                    
-                    // Informe du démarrage du jeu
-                    this.ecrireMessageAll("jeu::demarrage");
-                    
-                    // Démarre le modérateur de jeu
-                    this.modo = new Moderateur(this);
-                    // Initialise le jeu de cartes
-                    this.cartes = new CollectionCartes();
-                    // Distribue les cartes pour chaque joueur (une main pour chaque joueur)
-                    this.mains = new jeu.Main(this.modo.premiereDistribution());
-                    this.fosse = new Defausse();
-                    
-                    // Informe les joueurs de leurs adversaires
-                    this.ecrireMessageAll("jeu::infosJoueurs::" + this.listerJoueurs().toJSONString());
-                    
-                    }
-                    /*
-                    if (!this.areReadyConnections(5)) {
-                        throw new SocketException("Absence de réponse d'un/de joueur(s)");
-                    }
-                    */
-                    
-                    // Informe chaque joueur des cartes en sa possession
-                    synchronized(this.coJoueurs) {
-                        for (Connexion co : this.coJoueurs) {
-                            this.ecrireMessage(co, "jeu::infosCartes::" + this.mains.listerCartes(co.nomJoueur).toJSONString());
+                     if (!this.areReadyConnections(5)) {
+                     throw new SocketException("Absence de réponse d'un/de joueur(s)");
+                     }
+                     */
+                    boolean finParties = false;
+                    while (!finParties) {
+                        if (premierePartie) {
+                            // Informe du démarrage du jeu
+                            this.ecrireMessageAll("jeu::demarrage");
+                            // Démarre le modérateur de jeu
+                            this.modo = new Moderateur(this);
+                            // Initialise le jeu de cartes
+                            this.cartes = new CollectionCartes();
+                            // Distribue les cartes pour chaque joueur (une main pour chaque joueur)
+                            this.mains = new jeu.Main(this.modo.distribution());
+                            this.fosse = new Defausse();
+                        } else {
+                            this.ecrireMessageAll("jeu::demarrage");
+                            // Initialise le jeu de cartes
+                            this.cartes.initialisationDuJeu();
+                            // Distribue les cartes pour chaque joueur (une main pour chaque joueur)
+                            this.mains = new jeu.Main(this.modo.distribution());
+                            
+                            this.fosse.vider();
                         }
-                    }
-                    
-                    /*
-                    if (!this.areReadyConnections(5)) {
+
+                        // Informe les joueurs de leurs adversaires
+                        this.ecrireMessageAll("jeu::infosJoueurs::" + this.listerJoueurs().toJSONString());
+
+                        /*
+                        if (!this.areReadyConnections(5)) {
                         throw new SocketException("Absence de réponse d'un/de joueur(s)");
-                    }
-                    */
-                    
-                    this.ecrireMessageAll("jeu::infosCartesRestantes::" + this.mains.listerCartes(this.cartes.cartesRestantes).toJSONString());
-                    
-                    /*
-                    if (!this.areReadyConnections(5)) {
-                        throw new SocketException("Absence de réponse d'un/de joueur(s)");
-                    }
-                    */
-                    boolean sessionContinue = true;
-                    while (sessionContinue) {
-                        premierePartie = false;
-                    
-                    // Signale le début de la session de jeu
-                    this.modo.debutSession();
-                    
-                    // Annonce du premier joueur qui joue
-                    Connexion tourJoueur = this.modo.getPremierJoueurSession();
-                    this.ecrireMessageAll("jeu::tour::" + tourJoueur.nomJoueur);
-                    
-                    /*
-                    if (!this.areReadyConnections(5)) {
-                        throw new SocketException("Absence de réponse d'un/de joueur(s)");
-                    }
-                    */
-                    
-                    // Informe le joueur dont c'est le tour des cartes qu'il peut jouer
-                    // /!\ Réflexion en terme de combinaisons de carte
-                    ArrayList<Carte> main = this.mains.getMainJoueur(tourJoueur.nomJoueur);
-                    ArrayList<ArrayList<Carte>> combinaisons = this.modo.combinaisonsAutorisees(main);
-                    
-                    this.ecrireMessage(tourJoueur, "jeu::cartesJouables::" + this.modo.listerCombinaisons(combinaisons).toJSONString());
-                    
-                    // Attente d'infos du joueur dont c'est le tour
-                    this.semaphore.acquire();
-                    String msgJoueurTour = tourJoueur.currentMsg;
-                    while (!msgJoueurTour.matches("jeu::cartes::.*")) {
-                        this.ecrireMessage(tourJoueur, "jeu::cartes");
-                        this.semaphore.acquire();
-                        msgJoueurTour = tourJoueur.currentMsg;
-                    }
-                    
-                    String chaineCartes = msgJoueurTour.split("::")[2];
-                    if (chaineCartes.equals("")) {
-                        // Passe son tour
-                    }
-                    else {
+                        }
+                        */
+                        // Informe chaque joueur des cartes en sa possession
+                        synchronized (this.coJoueurs) {
+                            for (Connexion co : this.coJoueurs) {
+                                this.ecrireMessage(co, "jeu::infosCartes::" + this.mains.listerCartes(co.nomJoueur).toJSONString());
+                            }
+                        }
                         
+                        /*
+                        if (!this.areReadyConnections(5)) {
+                        throw new SocketException("Absence de réponse d'un/de joueur(s)");
+                        }
+                        */
+                        this.ecrireMessageAll("jeu::infosCartesRestantes::" + this.mains.listerCartes(this.cartes.cartesRestantes).toJSONString());
+
+                        /*
+                        if (!this.areReadyConnections(5)) {
+                        throw new SocketException("Absence de réponse d'un/de joueur(s)");
+                        }
+                        */
+                        if (!premierePartie) {
+                            // fonctions d'échange des cartes en fonction des rôles
+                        }
+                        /*
+                        if (!this.areReadyConnections(5)) {
+                        throw new SocketException("Absence de réponse d'un/de joueur(s)");
+                        }
+                        */
+                        
+                        boolean sessionSuivante = true;
+                        while (sessionSuivante) {
+                        boolean sessionPoursuivie = true;
+                        while (sessionPoursuivie) {
+                            premierePartie = false;
+                            // Annonce du premier joueur qui joue
+                            Connexion tourJoueur = this.modo.getNextJoueurSession();
+                            while (this.mains.getMainJoueur(tourJoueur.nomJoueur).isEmpty()) {
+                                tourJoueur = this.modo.getNextJoueurSession();
+                            }
+                            this.ecrireMessageAll("jeu::tour::" + tourJoueur.nomJoueur);
+
+                            /*
+                             if (!this.areReadyConnections(5)) {
+                             throw new SocketException("Absence de réponse d'un/de joueur(s)");
+                             }
+                             */
+                            // Informe le joueur dont c'est le tour des cartes qu'il peut jouer
+                            // /!\ Réflexion en terme de combinaisons de carte
+                            ArrayList<Carte> main = this.mains.getMainJoueur(tourJoueur.nomJoueur);
+                            ArrayList<ArrayList<Carte>> combinaisons = this.modo.combinaisonsAutorisees(main);
+
+                            this.ecrireMessage(tourJoueur, "jeu::cartesJouables::" + this.modo.listerCombinaisons(combinaisons).toJSONString());
+
+                            // Attente d'infos du joueur dont c'est le tour
+                            boolean msgAttendu = false;
+                            while (!msgAttendu) {
+                                this.semaphore.acquire();
+                                String msgJoueurTour = tourJoueur.currentMsg;
+                                if (!msgJoueurTour.matches("jeu::cartesJouees::.*")) {
+                                    this.ecrireMessage(tourJoueur, "jeu::cartesJouees::erreur::En attente des cartes jouées !");
+                                } else {
+                                    String chaineCartes = msgJoueurTour.split("::")[2];
+                                    if (chaineCartes.equals("")) {
+                                        // Passe son tour
+                                        msgAttendu = true;
+                                    } else {
+                                        ArrayList<Carte> cartesJouees = this.mains.parserJSON(chaineCartes);
+                                        boolean cartesDeLaMain = true;
+                                        for (Carte ca : cartesJouees) {
+                                            if (!main.contains(ca)) {
+                                                cartesDeLaMain = false;
+                                            }
+                                        }
+                                        if (!cartesDeLaMain) {
+                                            this.ecrireMessage(tourJoueur, "jeu::cartesJouees::erreur::Ces cartes ne font pas partie de votre jeu !");
+                                        } else if (!this.mains.carteDupliquee(cartesJouees) && this.modo.carteAutorisee(cartesJouees)) {
+                                            msgAttendu = true;
+                                            for (Carte ca : cartesJouees) {
+                                                this.mains.jouerCarte(tourJoueur.nomJoueur, ca);
+                                            }
+                                            this.fosse.poserCartes(tourJoueur.nomJoueur, cartesJouees);
+                                            this.ecrireMessageAll("jeu::infosJoueurs::" + this.listerJoueurs().toJSONString());
+                                            /*
+                                            if (!this.areReadyConnections(5)) {
+                                            throw new SocketException("Absence de réponse d'un/de joueur(s)");
+                                            }
+                                            */
+                                            this.ecrireMessage(tourJoueur, "jeu::infosCartes::" + this.mains.listerCartes(tourJoueur.nomJoueur).toJSONString());
+                                            /*
+                                            if (!this.areReadyConnections(5)) {
+                                            throw new SocketException("Absence de réponse d'un/de joueur(s)");
+                                            }
+                                            */
+                                            this.ecrireMessageAll("jeu::cartesPosees::" + this.mains.listerCartes(cartesJouees).toJSONString());
+                                            if (cartesJouees.get(0).getHauteur().equals("2") || (!this.fosse.getDerniersCartesPosees().isEmpty() && (cartesJouees.size() + this.fosse.getDerniersCartesPosees().size()) == 4 && this.fosse.getDerniersCartesPosees().get(0).getHauteur().equals(cartesJouees.get(0).getHauteur()))) {
+                                                sessionPoursuivie = false;
+                                                /*
+                                                if (!this.areReadyConnections(5)) {
+                                                throw new SocketException("Absence de réponse d'un/de joueur(s)");
+                                                }
+                                                */
+                                                this.ecrireMessageAll("jeu::sessionSuivante");
+                                            }
+                                            if (this.mains.getMainJoueur(tourJoueur.nomJoueur).isEmpty()) {
+                                                this.modo.mainVide(tourJoueur);
+                                                if (cartesJouees.get(0).getHauteur().equals("2")) {
+                                                    this.modo.ajouterTrouDuc(tourJoueur);
+                                                    /*
+                                                    if (!this.areReadyConnections(5)) {
+                                                    throw new SocketException("Absence de réponse d'un/de joueur(s)");
+                                                    }
+                                                    */
+                                                    this.ecrireMessageAll("chat::" + tourJoueur.nomJoueur + ", vous avez joué un 2 en dernier. Vous serez Trou du Cul à la prochaine partie.");
+                                                }
+                                                if (this.modo.ordreFinJoueurs.size() == this.nbJoueurs - 1) {
+                                                    // Fin de la partie - 1 seul joueur a encore des cartes
+                                                    sessionSuivante = false;
+                                                    synchronized(this.coJoueurs) {
+                                                        for (Connexion co : this.coJoueurs) {
+                                                            if (!this.modo.ordreFinJoueurs.contains(co)) {
+                                                                this.modo.mainVide(co);
+                                                            }
+                                                        }
+                                                    }
+                                                    /*
+                                                    if (!this.areReadyConnections(5)) {
+                                                    throw new SocketException("Absence de réponse d'un/de joueur(s)");
+                                                    }
+                                                    */
+                                                    this.ecrireMessageAll("jeu::partieSuivante");
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                            
+                            
+                        }
+                        this.modo.finSession();
                     }
-                    this.modo.finSession();
+                        /*
+                         if (!this.areReadyConnections(5)) {
+                         throw new SocketException("Absence de réponse d'un/de joueur(s)");
+                         }
+                         */
+
+                        this.modo.finPartie();
                     }
                 } catch (SocketException e) {
                     System.out.println("Passage socket");
                     // Atteint dès lors qu'un client a été déconnecté
-                    synchronized(this.coJoueurs) {
+                    synchronized (this.coJoueurs) {
                         ArrayList<Connexion> tmp = this.checkConnexions();
                         if (tmp.size() > 0) {
                             for (Connexion co : tmp) {
@@ -222,7 +315,7 @@ public class Salon extends Thread{
                 } catch (IOException e) {
                     System.out.println("Passage IO");
                     // Atteint dès lors qu'un client a été déconnecté
-                    synchronized(this.coJoueurs) {
+                    synchronized (this.coJoueurs) {
                         ArrayList<Connexion> tmp = this.checkConnexions();
                         if (tmp.size() > 0) {
                             for (Connexion co : tmp) {
@@ -234,24 +327,24 @@ public class Salon extends Thread{
                     this.nettoyage();
                 }
             }
-        }
-        catch (Exception e) {
+        } catch (Exception e) {
             System.out.println("Salon : " + e.getMessage());
         }
     }
-    
+
     /**
      * Ajoute un joueur à la liste des connexions du salon
+     *
      * @param co La connexion du joueur à ajouter
      * @return True si l'ajout s'est bien passé, False sinon
      * @throws IOException
-     * @throws InterruptedException 
+     * @throws InterruptedException
      */
     public boolean ajoutJoueur(Connexion co) throws IOException, InterruptedException {
         boolean ajout = false;
         // Retire les connexions fermées de la liste des connexions
         nettoyage();
-        synchronized(this.coJoueurs) {
+        synchronized (this.coJoueurs) {
             // S'il y a encore de la place dans le salon
             // On ajoute le joueur
             if (this.coJoueurs.size() < nbJoueurs) {
@@ -261,29 +354,32 @@ public class Salon extends Thread{
         }
         return ajout;
     }
-    
+
     public int getNbJoueursMax() {
         return this.nbJoueurs;
     }
-    
+
     /**
-     * Nettoie la liste des connexions puis vérifie leur nombre, avant de le retourner
+     * Nettoie la liste des connexions puis vérifie leur nombre, avant de le
+     * retourner
+     *
      * @return Le nombre de joueurs actuellement dans le salon
      */
     public int getNbJoueurs() {
         int taille = this.nbJoueurs;
         nettoyage();
-        synchronized(this.coJoueurs) {
+        synchronized (this.coJoueurs) {
             taille = this.coJoueurs.size();
         }
         return taille;
     }
-    
+
     /**
-     * Vérifie l'état de chaque connexion de la liste, et la supprime si elle est fermée
+     * Vérifie l'état de chaque connexion de la liste, et la supprime si elle
+     * est fermée
      */
     public void nettoyage() {
-        synchronized(this.coJoueurs) {
+        synchronized (this.coJoueurs) {
             Iterator it = this.coJoueurs.iterator();
             while (it.hasNext()) {
                 Connexion co = (Connexion) it.next();
@@ -295,14 +391,16 @@ public class Salon extends Thread{
             }
         }
     }
-    
+
     /**
-     * Vérifie que toutes les connexions sont ouvertes, et lève une exception dans le cas contraire
-     * @throws SocketException 
+     * Vérifie que toutes les connexions sont ouvertes, et lève une exception
+     * dans le cas contraire
+     *
+     * @throws SocketException
      */
     public ArrayList<Connexion> checkConnexions() throws SocketException {
         ArrayList<Connexion> cos = new ArrayList<Connexion>();
-        synchronized(this.coJoueurs) {
+        synchronized (this.coJoueurs) {
             for (Connexion co : this.coJoueurs) {
                 if (co.isSocketClosed()) {
                     cos.add(co);
@@ -311,23 +409,24 @@ public class Salon extends Thread{
         }
         return cos;
     }
-    
+
     /**
      * Envoie un message aux joueurs et attend leur réponse
+     *
      * @param nbTentatives
      * @return True si les connexions sont prêtes, False sinon
-     * @throws IOException 
+     * @throws IOException
      */
     public boolean areReadyConnections(int nbTentatives) throws IOException, InterruptedException {
         boolean ready = true;
         int tentatives = 0;
         this.reponses.clear();
         int taille;
-        synchronized(this.reponses) {
+        synchronized (this.reponses) {
             taille = this.reponses.size();
         }
         while (taille != this.nbJoueurs && tentatives < nbTentatives) {
-            synchronized(this.coJoueurs) {
+            synchronized (this.coJoueurs) {
                 for (Connexion co : this.coJoueurs) {
                     if (!co.isReady()) {
                         ready = false;
@@ -336,9 +435,9 @@ public class Salon extends Thread{
             }
             sleep(500);
             tentatives++;
-            synchronized(this.reponses) {
-            taille = this.reponses.size();
-        }
+            synchronized (this.reponses) {
+                taille = this.reponses.size();
+            }
         }
 
         if (tentatives >= nbTentatives) {
@@ -346,48 +445,49 @@ public class Salon extends Thread{
         }
         return ready;
     }
-    
+
     public void aSyncAreReadyConnections() throws IOException, InterruptedException {
         this.aSyncRep = false;
         int taille;
-        synchronized(this.reponses) {
+        synchronized (this.reponses) {
             taille = this.reponses.size();
         }
         if (taille != this.nbJoueurs) {
-            synchronized(this.coJoueurs) {
+            synchronized (this.coJoueurs) {
                 for (Connexion co : this.coJoueurs) {
                     co.isReady();
                 }
             }
-        }
-        else {
+        } else {
             this.aSyncRep = true;
         }
     }
-    
+
     /**
      * Envoie un message au joueur par la connexion spécifiée
+     *
      * @param co Connexion utilisée
      * @param msg Message envoyé
-     * @throws IOException 
+     * @throws IOException
      */
     public void ecrireMessage(Connexion co, String msg) throws IOException {
         co.ecrireMessage(msg);
     }
-    
+
     /**
      * Envoie un message à tous les joueurs du salon
+     *
      * @param msg Message envoyé
-     * @throws IOException 
+     * @throws IOException
      */
     public void ecrireMessageAll(String msg) throws IOException {
-        synchronized(this.coJoueurs) {
+        synchronized (this.coJoueurs) {
             for (Connexion co : this.coJoueurs) {
                 co.ecrireMessage(msg);
             }
         }
     }
-    
+
     public JSONArray listerJoueurs() {
         JSONArray listeJoueurs = new JSONArray();
         synchronized (this.coJoueurs) {
@@ -401,13 +501,13 @@ public class Salon extends Thread{
         }
         return listeJoueurs;
     }
-    
+
     public void repondre(Connexion co) {
         if (!this.reponses.contains(co)) {
             this.reponses.add(co);
         }
     }
-    
+
     public void voterContre() {
         this.nbReponsesNeg++;
     }

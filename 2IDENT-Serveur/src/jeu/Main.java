@@ -59,9 +59,14 @@ public class Main {
     }
     
     public boolean carteDupliquee(ArrayList<Carte> cartes) {
-        boolean result = false;
-        
-        return result;
+        for (int i = 0; i < cartes.size(); i++) {
+	    for (int j = i + 1; j < cartes.size(); j++) {
+		if (cartes.get(i).equals(cartes.get(j))) {
+		    return true;
+		}
+	    }
+	}
+        return false;
     }
     
     public ArrayList<Carte> parserJSON(String cartesS) throws ParseException {

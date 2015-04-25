@@ -31,6 +31,10 @@ public class CollectionCartes {
     }
     
     public void initialisationDuJeu() {
+        this.cartes.clear();
+        this.cartesDistribuees.clear();
+        this.cartesRestantes.clear();
+        
         Carte c;
         c = new Carte("14","CO");
         this.cartes.add(c);

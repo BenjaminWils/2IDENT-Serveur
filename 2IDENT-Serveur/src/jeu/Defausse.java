@@ -9,6 +9,7 @@ import java.util.ArrayList;
 public class Defausse {
     private ArrayList<ArrayList<Carte>> pile;
     private int lastIndex;
+    private String pseudoDernierPoseur;
     
     public Defausse() {
         this.pile = new ArrayList();
@@ -20,10 +21,11 @@ public class Defausse {
         this.pile.clear();
     }
     
-    public void poserCartes(ArrayList<Carte> cartes) {
+    public void poserCartes(String pseudo, ArrayList<Carte> cartes) {
         if (cartes.size() > 0) {
             this.lastIndex++;
             this.pile.add(cartes);
+            this.pseudoDernierPoseur = pseudo;
         }
     }
     
@@ -33,5 +35,11 @@ public class Defausse {
             cartes = this.pile.get(lastIndex);
         }
         return cartes;
+    }
+    
+    public void signalerFinSession() {
+        this.lastIndex++;
+        ArrayList<Carte> cartes = new ArrayList();
+        this.pile.add(cartes);
     }
 }

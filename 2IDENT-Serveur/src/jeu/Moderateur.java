@@ -2,6 +2,7 @@ package jeu;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.Random;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
@@ -19,18 +20,25 @@ public class Moderateur {
     
     private Salon salle;
     private Random rand;
-    private int nbSessions;
+    private int nbParties;
+    private int indexTour;
     
-    private ArrayList<Connexion> ordreFinJoueurs;
+    public ArrayList<Connexion> ordreFinJoueurs;
+    
+    private ArrayList<Connexion> ordreTourJoueurs;
+    
+    private ArrayList<Connexion> trouDucs;
     
     public Moderateur(Salon salle) {
         this.salle = salle;
         this.rand = new Random();
-        this.nbSessions = 0;
+        this.nbParties = 1;
         this.ordreFinJoueurs = new ArrayList<>();
+        this.ordreTourJoueurs = new ArrayList<>();
+        this.trouDucs = new ArrayList<>();
     }
     
-    public HashMap<String, ArrayList<Carte>> premiereDistribution() {
+    public HashMap<String, ArrayList<Carte>> distribution() {
         HashMap<String, ArrayList<Carte>> mains = new HashMap();
         
         synchronized(this.salle.coJoueurs) {
@@ -49,13 +57,20 @@ public class Moderateur {
         return mains;
     }
     
-    public void debutSession() {
-        this.nbSessions++;
+    public void finSession() {
+        this.salle.fosse.signalerFinSession();
+    }
+    public void finPartie() {
+        this.attributionRoles();
+        nbParties++;
         this.ordreFinJoueurs.clear();
+        this.trouDucs.clear();
+        this.ordreTourJoueurs.clear();
+        this.indexTour = 0;
     }
     
-    public void finSession() {
-        this.attributionRoles();
+    public void ajouterTrouDuc(Connexion co) {
+        this.trouDucs.add(co);
     }
     
     public int generateRandomNumber(int min, int max, Random rand) {
@@ -66,6 +81,20 @@ public class Moderateur {
     }
     
     public void attributionRoles() {
+        if (!this.trouDucs.isEmpty()) {
+            for (int i = 0; i < this.trouDucs.size(); i++) {
+                Connexion co = this.trouDucs.get(i);
+                int index = 0;
+                for (int j = 0; j < this.ordreFinJoueurs.size(); j++) {
+                    if (co.equals(this.ordreFinJoueurs.get(j))) {
+                        index = j;
+                    }
+                }
+                this.ordreFinJoueurs.add(co);
+                this.ordreFinJoueurs.remove(index);
+            }
+        }
+        
         for (Connexion co : this.ordreFinJoueurs) {
             co.role = null;
         }
@@ -96,7 +125,7 @@ public class Moderateur {
         boolean flag = false;
         ArrayList<Carte> defossees = this.salle.fosse.getDerniersCartesPosees();
         if (cartes.size() < 5) {
-            if (defossees.size() == 0 || defossees.size() == 4 || (defossees.size() > 0 && defossees.get(0).equals("2"))) {
+            if (defossees.isEmpty() || defossees.size() == 4 || (defossees.size() > 0 && defossees.get(0).getHauteur().equals("2"))) {
                 // -> nouvelle session
                 // tout nb de cartes entre 1 et 4 autorisé
                 // toute hauteur autorisée 
@@ -196,16 +225,53 @@ public class Moderateur {
         return flag;
     }
     
-    public Connexion getPremierJoueurSession() {
+    public Connexion getNextJoueurSession() {
         Connexion co = null;
         synchronized(this.salle.coJoueurs) {
-            for (Connexion c : this.salle.coJoueurs) {
-                if (c.role == TypeRole.President) {
-                    co = c;
+            if (this.ordreTourJoueurs.size() == this.salle.coJoueurs.size()) {
+                co = this.ordreTourJoueurs.get(this.indexTour % this.salle.coJoueurs.size());
+                this.indexTour++;
+            } else if (this.nbParties > 1) {
+                for (Connexion c : this.salle.coJoueurs) {
+                    if (!this.ordreTourJoueurs.contains(c) && c.role == TypeRole.President) {
+                        co = c;
+                    }
                 }
-            }
-            if (co == null) {
+                if (co == null) {
+                    for (Connexion c : this.salle.coJoueurs) {
+                        if (!this.ordreTourJoueurs.contains(c) && c.role == TypeRole.VicePresident) {
+                            co = c;
+                        }
+                    }
+                    if (co == null) {
+                        for (Connexion c : this.salle.coJoueurs) {
+                            if (!this.ordreTourJoueurs.contains(c) && c.role == TypeRole.Neutre) {
+                                co = c;
+                            }
+                        }
+                        if (co == null) {
+                            for (Connexion c : this.salle.coJoueurs) {
+                                if (!this.ordreTourJoueurs.contains(c) && c.role == TypeRole.Secretaire) {
+                                    co = c;
+                                }
+                            }
+                            if (co == null) {
+                                for (Connexion c : this.salle.coJoueurs) {
+                                    if (!this.ordreTourJoueurs.contains(c) && c.role == TypeRole.TrouDuCul) {
+                                        co = c;
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+                this.ordreTourJoueurs.add(co);
+            } else {
                 co = this.salle.coJoueurs.get(this.generateRandomNumber(0, this.salle.coJoueurs.size() - 1, rand));
+                while (this.ordreTourJoueurs.contains(co)) {
+                    co = this.salle.coJoueurs.get(this.generateRandomNumber(0, this.salle.coJoueurs.size() - 1, rand));
+                }
+                this.ordreTourJoueurs.add(co);
             }
         }
         return co;
