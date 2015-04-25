@@ -95,27 +95,102 @@ public class Moderateur {
     public boolean carteAutorisee(ArrayList<Carte> cartes) {
         boolean flag = false;
         ArrayList<Carte> defossees = this.salle.fosse.getDerniersCartesPosees();
-        if (defossees.size() == 0 || defossees.size() == 4 || (defossees.size() > 0 && defossees.get(0).equals("2"))) {
-            // -> nouvelle session
-            // tout nb de cartes entre 1 et 4 autorisé
-            // toute hauteur autorisée 
-        }
-        else if (defossees.size() == 1) {
-            // tout nb de cartes entre 1 et 4 autorisé
-            // si hauteur identique, entre 1 et 3 cartes
-            // si hauteur supérieure, entre 1 et 4 cartes
-            
-        }
-        else if (defossees.size() == 2) {
-            // nb de cartes entre 2 et 4 autorisé
-            // si hauteur identique, entre 1 et 2 cartes
-            // si hauteur supérieure, entre 1 et 4 cartes
-            
-        }
-        else if (defossees.size() == 3) {
-            // nb de cartes entre 3 et 4 autorisé
-            // hauteur supérieure uniquement, entre 1 et 4 cartes
-            
+        if (cartes.size() < 5) {
+            if (defossees.size() == 0 || defossees.size() == 4 || (defossees.size() > 0 && defossees.get(0).equals("2"))) {
+                // -> nouvelle session
+                // tout nb de cartes entre 1 et 4 autorisé
+                // toute hauteur autorisée 
+                if (cartes.size() == 1) {
+                    flag = true;
+                } else if (cartes.size() == 2) {
+                    String hauteur = cartes.get(0).getHauteur();
+                    if (hauteur.equals(cartes.get(1).getHauteur())) {
+                        flag = true;
+                    }
+                } else if (cartes.size() == 3) {
+                    String hauteur = cartes.get(0).getHauteur();
+                    if (hauteur.equals(cartes.get(1).getHauteur()) && hauteur.equals(cartes.get(2).getHauteur())) {
+                        flag = true;
+                    }
+                } else if (cartes.size() == 4) {
+                    String hauteur = cartes.get(0).getHauteur();
+                    if (hauteur.equals(cartes.get(1).getHauteur()) && hauteur.equals(cartes.get(2).getHauteur()) && hauteur.equals(cartes.get(3).getHauteur())) {
+                        flag = true;
+                    }
+                }
+            } else if (defossees.size() == 1) {
+                // tout nb de cartes entre 1 et 4 autorisé
+                // si hauteur identique, entre 1 et 3 cartes
+                // si hauteur supérieure, entre 1 et 4 cartes
+                if (cartes.size() == 1 && Integer.valueOf(cartes.get(0).getHauteur()) >= Integer.valueOf(defossees.get(0).getHauteur())) {
+                    flag = true;
+                } else if (cartes.size() == 2) {
+                    String hauteur = cartes.get(0).getHauteur();
+                    if (hauteur.equals(cartes.get(1).getHauteur())) {
+                        if (Integer.valueOf(hauteur) >= Integer.valueOf(defossees.get(0).getHauteur()) || hauteur.equals("2")) {
+                            flag = true;
+                        }
+                    }
+                } else if (cartes.size() == 3) {
+                    String hauteur = cartes.get(0).getHauteur();
+                    if (hauteur.equals(cartes.get(1).getHauteur()) && hauteur.equals(cartes.get(2).getHauteur())) {
+                        if (Integer.valueOf(hauteur) >= Integer.valueOf(defossees.get(0).getHauteur()) || hauteur.equals("2")) {
+                            flag = true;
+                        }
+                    }
+                } else if (cartes.size() == 4) {
+                    String hauteur = cartes.get(0).getHauteur();
+                    if (hauteur.equals(cartes.get(1).getHauteur()) && hauteur.equals(cartes.get(2).getHauteur()) && hauteur.equals(cartes.get(3).getHauteur())) {
+                        if (Integer.valueOf(hauteur) > Integer.valueOf(defossees.get(0).getHauteur()) || hauteur.equals("2")) {
+                            flag = true;
+                        }
+                    }
+                }
+            } else if (defossees.size() == 2) {
+                // nb de cartes entre 2 et 4 autorisé
+                // si hauteur identique, entre 1 et 2 cartes
+                // si hauteur supérieure, entre 1 et 4 cartes
+                if (cartes.size() == 2) {
+                    String hauteur = cartes.get(0).getHauteur();
+                    if (hauteur.equals(cartes.get(1).getHauteur())) {
+                        if (Integer.valueOf(hauteur) >= Integer.valueOf(defossees.get(0).getHauteur()) || hauteur.equals("2")) {
+                            flag = true;
+                        }
+                    }
+                } else if (cartes.size() == 3) {
+                    String hauteur = cartes.get(0).getHauteur();
+                    if (hauteur.equals(cartes.get(1).getHauteur()) && hauteur.equals(cartes.get(2).getHauteur())) {
+                        if (Integer.valueOf(hauteur) > Integer.valueOf(defossees.get(0).getHauteur()) || hauteur.equals("2")) {
+                            flag = true;
+                        }
+                    }
+                } else if (cartes.size() == 4) {
+                    String hauteur = cartes.get(0).getHauteur();
+                    if (hauteur.equals(cartes.get(1).getHauteur()) && hauteur.equals(cartes.get(2).getHauteur()) && hauteur.equals(cartes.get(3).getHauteur())) {
+                        if (Integer.valueOf(hauteur) > Integer.valueOf(defossees.get(0).getHauteur()) || hauteur.equals("2")) {
+                            flag = true;
+                        }
+                    }
+                }
+            } else if (defossees.size() == 3) {
+                // nb de cartes entre 3 et 4 autorisé
+                // hauteur supérieure uniquement, entre 1 et 4 cartes
+                if (cartes.size() == 3) {
+                    String hauteur = cartes.get(0).getHauteur();
+                    if (hauteur.equals(cartes.get(1).getHauteur()) && hauteur.equals(cartes.get(2).getHauteur())) {
+                        if (Integer.valueOf(hauteur) > Integer.valueOf(defossees.get(0).getHauteur()) || hauteur.equals("2")) {
+                            flag = true;
+                        }
+                    }
+                } else if (cartes.size() == 4) {
+                    String hauteur = cartes.get(0).getHauteur();
+                    if (hauteur.equals(cartes.get(1).getHauteur()) && hauteur.equals(cartes.get(2).getHauteur()) && hauteur.equals(cartes.get(3).getHauteur())) {
+                        if (Integer.valueOf(hauteur) > Integer.valueOf(defossees.get(0).getHauteur()) || hauteur.equals("2")) {
+                            flag = true;
+                        }
+                    }
+                }
+            }
         }
 
         return flag;
@@ -125,7 +200,7 @@ public class Moderateur {
         Connexion co = null;
         synchronized(this.salle.coJoueurs) {
             for (Connexion c : this.salle.coJoueurs) {
-                if (co.role == TypeRole.President) {
+                if (c.role == TypeRole.President) {
                     co = c;
                 }
             }

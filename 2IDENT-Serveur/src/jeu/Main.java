@@ -4,6 +4,8 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
+import org.json.simple.parser.JSONParser;
+import org.json.simple.parser.ParseException;
 
 /**
  *
@@ -54,5 +56,23 @@ public class Main {
             listeCartes.add(obj);
         }
         return listeCartes;
+    }
+    
+    public boolean carteDupliquee(ArrayList<Carte> cartes) {
+        boolean result = false;
+        
+        return result;
+    }
+    
+    public ArrayList<Carte> parserJSON(String cartesS) throws ParseException {
+        ArrayList<Carte> cartes = new ArrayList();
+        JSONParser parser = new JSONParser();
+        JSONArray cartesJ = (JSONArray) parser.parse(cartesS);
+        for (Object o : cartesJ) {
+            JSONObject obj = (JSONObject) o;
+            Carte c = new Carte((String)obj.get("hauteur"),(String)obj.get("couleur"));
+            cartes.add(c);
+        }
+        return cartes;
     }
 }

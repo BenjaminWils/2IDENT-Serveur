@@ -52,6 +52,7 @@ public class Salon extends Thread{
         this.nbJoueurs = nbJoueurs;
         this.coJoueurs = new ArrayList<>();
         this.reponses = new ArrayList<Connexion>();
+        this.semaphore = new Semaphore(0);
     }
 
     @Override
@@ -64,13 +65,14 @@ public class Salon extends Thread{
         System.out.println("Salon démarré");
         try {
             boolean repriseSalon = false;
+            boolean premierePartie = true;
             int tentatives = 0;
             // Tant qu'il n'est pas interrompu
             while (!Thread.currentThread().isInterrupted()) {
                 try {
-                    this.nbJoueurs = this.getNbJoueurs();
                     if (repriseSalon) {
                         // Si la déconnexion d'un joueur a interrompu une partie précédente
+                        this.nbJoueurs = this.getNbJoueurs();
                         this.ecrireMessageAll("salon::reprise");
                         
                         tentatives = 0;
@@ -93,6 +95,8 @@ public class Salon extends Thread{
                         }
                     }
                     
+                    System.out.println("File d'attente");
+                    
                     // Démarre l'attente des joueurs
                     int joueursAttendus = this.getNbJoueursMax() - this.getNbJoueurs();
                     int oldJoueursAttendus = 0;
@@ -111,9 +115,13 @@ public class Salon extends Thread{
                     // En attente de statut READY des clients
                     // On s'assure que tous les clients vont bien recevoir le message
                     // Permet de synchroniser les clients
+                    /*
                     if (!this.areReadyConnections(5)) {
                         throw new SocketException("Absence de réponse d'un/de joueur(s)");
                     }
+                    */
+                    
+                    if (premierePartie) {
                     
                     // Informe du démarrage du jeu
                     this.ecrireMessageAll("jeu::demarrage");
@@ -125,15 +133,16 @@ public class Salon extends Thread{
                     // Distribue les cartes pour chaque joueur (une main pour chaque joueur)
                     this.mains = new jeu.Main(this.modo.premiereDistribution());
                     this.fosse = new Defausse();
-                    // Signale le début de la session de jeu
-                    this.modo.debutSession();
                     
                     // Informe les joueurs de leurs adversaires
                     this.ecrireMessageAll("jeu::infosJoueurs::" + this.listerJoueurs().toJSONString());
                     
+                    }
+                    /*
                     if (!this.areReadyConnections(5)) {
                         throw new SocketException("Absence de réponse d'un/de joueur(s)");
                     }
+                    */
                     
                     // Informe chaque joueur des cartes en sa possession
                     synchronized(this.coJoueurs) {
@@ -142,17 +151,35 @@ public class Salon extends Thread{
                         }
                     }
                     
+                    /*
                     if (!this.areReadyConnections(5)) {
                         throw new SocketException("Absence de réponse d'un/de joueur(s)");
                     }
+                    */
+                    
+                    this.ecrireMessageAll("jeu::infosCartesRestantes::" + this.mains.listerCartes(this.cartes.cartesRestantes).toJSONString());
+                    
+                    /*
+                    if (!this.areReadyConnections(5)) {
+                        throw new SocketException("Absence de réponse d'un/de joueur(s)");
+                    }
+                    */
+                    boolean sessionContinue = true;
+                    while (sessionContinue) {
+                        premierePartie = false;
+                    
+                    // Signale le début de la session de jeu
+                    this.modo.debutSession();
                     
                     // Annonce du premier joueur qui joue
                     Connexion tourJoueur = this.modo.getPremierJoueurSession();
                     this.ecrireMessageAll("jeu::tour::" + tourJoueur.nomJoueur);
                     
+                    /*
                     if (!this.areReadyConnections(5)) {
                         throw new SocketException("Absence de réponse d'un/de joueur(s)");
                     }
+                    */
                     
                     // Informe le joueur dont c'est le tour des cartes qu'il peut jouer
                     // /!\ Réflexion en terme de combinaisons de carte
@@ -163,13 +190,22 @@ public class Salon extends Thread{
                     
                     // Attente d'infos du joueur dont c'est le tour
                     this.semaphore.acquire();
-                    if (!tourJoueur.currentMsg.matches("jeu::carte::.*")) {
-                        this.ecrireMessage(tourJoueur, "jeu::carte");
+                    String msgJoueurTour = tourJoueur.currentMsg;
+                    while (!msgJoueurTour.matches("jeu::cartes::.*")) {
+                        this.ecrireMessage(tourJoueur, "jeu::cartes");
+                        this.semaphore.acquire();
+                        msgJoueurTour = tourJoueur.currentMsg;
+                    }
+                    
+                    String chaineCartes = msgJoueurTour.split("::")[2];
+                    if (chaineCartes.equals("")) {
+                        // Passe son tour
                     }
                     else {
                         
                     }
-                    
+                    this.modo.finSession();
+                    }
                 } catch (SocketException e) {
                     System.out.println("Passage socket");
                     // Atteint dès lors qu'un client a été déconnecté
