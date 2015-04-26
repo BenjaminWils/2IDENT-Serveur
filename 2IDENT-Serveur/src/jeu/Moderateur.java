@@ -277,6 +277,65 @@ public class Moderateur {
         return co;
     }
     
+    public ArrayList<Carte> getCartesAEchanger(TypeRole role) {
+        ArrayList<Carte> cartes = null;
+        ArrayList<Carte> main = null;
+        if (role != null && role != TypeRole.Neutre) {
+            synchronized(this.salle.coJoueurs) {
+                for (Connexion co : this.salle.coJoueurs) {
+                    if (co.role == role) {
+                        main = this.salle.mains.getMainJoueur(co.nomJoueur);
+                    }
+                }
+            }
+            
+            if (role == TypeRole.Secretaire) {
+                Carte max = main.get(0);
+                for (Carte ca : main) {
+                    if (cartes.size() != 1) {
+                        if (ca.getHauteur().equals("2")) {
+                            cartes.add(ca);
+                        }
+                        if (Integer.valueOf(ca.getHauteur()) > Integer.valueOf(max.getHauteur())) {
+                            max = ca;
+                        }
+                    }
+                }
+                if (cartes.size() != 1) {
+                    cartes.add(max);
+                }
+            }
+            
+            if (role == TypeRole.TrouDuCul) {
+                Carte max = main.get(0);
+                Carte max2 = main.get(1);
+                for (Carte ca : main) {
+                    if (cartes.size() != 2) {
+                        if (ca.getHauteur().equals("2")) {
+                            cartes.add(ca);
+                        }
+                        if (Integer.valueOf(ca.getHauteur()) > Integer.valueOf(max.getHauteur()) && !cartes.contains(ca)) {
+                            max = ca;
+                        }
+                    }
+                }
+                if (cartes.size() != 2) {
+                    cartes.add(max);
+                }
+                if (cartes.size() != 2) {
+                    for (Carte ca : main) {
+                        if (Integer.valueOf(ca.getHauteur()) > Integer.valueOf(max2.getHauteur()) && !cartes.contains(ca)) {
+                            max2 = ca;
+                        }
+                    }
+                    cartes.add(max2);
+                }
+            }
+        }
+        
+        return cartes;
+    }
+    
     public ArrayList<ArrayList<Carte>> combinaisonsAutorisees(ArrayList<Carte> main) {
         ArrayList<ArrayList<Carte>> combinaisons = new ArrayList();
         ArrayList<Carte> cartes = null;

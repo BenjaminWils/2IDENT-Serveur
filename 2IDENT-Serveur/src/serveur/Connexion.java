@@ -173,6 +173,7 @@ public class Connexion extends Thread {
                 msg = this.in.readLine();
                 testSocket(msg);
                 this.currentMsg = msg;
+                System.out.println("Réception depuis " + this.nomJoueur + " : " + msg);
                 while ((msg != null) && (this.salle != null) && (!msg.matches("connection::fin::.*"))) {
                     if (msg.matches("chat::.*")) {
                         String contenu = msg.split("::")[1];

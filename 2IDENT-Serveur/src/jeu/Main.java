@@ -26,6 +26,22 @@ public class Main {
         return cartes;
     }
     
+    public void donnerCartes(String pseudo, ArrayList<Carte> cartes) {
+        if (!cartes.isEmpty()) {
+            for (Carte ca : cartes) {
+                this.mains.get(pseudo).add(ca);
+            }
+        }
+    }
+    
+    public void prendreCartes(String pseudo, ArrayList<Carte> cartes) {
+        if (!cartes.isEmpty()) {
+            for (Carte ca : cartes) {
+                this.mains.get(pseudo).remove(ca);
+            }
+        }
+    }
+    
     public ArrayList<Carte> jouerCarte(String pseudo, Carte ca) {
         ArrayList<Carte> cartes = null;
         if (this.mains.containsKey(pseudo)) {
