@@ -378,7 +378,7 @@ public class Salon extends Thread {
                                     this.semaphore.acquire();
                                     String msgJoueurTour = tourJoueur.currentMsg;
                                     if (!msgJoueurTour.matches("jeu::cartesJouees::.*")) {
-                                        this.ecrireMessage(tourJoueur, "jeu::cartesJouees::erreur::En attente des cartes jouées !");
+                                        this.ecrireMessage(tourJoueur, "erreur::En attente des cartes jouées !");
                                     } else {
                                         String chaineCartes = msgJoueurTour.split("::")[2];
                                         if (chaineCartes.equals("")) {
@@ -393,7 +393,7 @@ public class Salon extends Thread {
                                                 }
                                             }
                                             if (!cartesDeLaMain) {
-                                                this.ecrireMessage(tourJoueur, "jeu::cartesJouees::erreur::Ces cartes ne font pas partie de votre jeu !");
+                                                this.ecrireMessage(tourJoueur, "erreur::Ces cartes ne font pas partie de votre jeu !");
                                             } else if (!this.mains.carteDupliquee(cartesJouees) && this.modo.carteAutorisee(cartesJouees)) {
                                                 msgAttendu = true;
                                                 for (Carte ca : cartesJouees) {
@@ -451,6 +451,9 @@ public class Salon extends Thread {
                                                         this.ecrireMessageAll("jeu::partieSuivante");
                                                     }
                                                 }
+                                            }
+                                            else {
+                                                this.ecrireMessage(tourJoueur, "erreur::Cette combinaison n'est pas autorisée !");
                                             }
                                         }
                                     }

@@ -18,6 +18,21 @@ public class Carte {
         return this.hauteur + "-" + this.couleur;
     }
     
+    @Override
+    public boolean equals(Object obj) {
+        boolean result = false;
+        try {
+            Carte c = (Carte) obj;
+            if (this.couleur.equals(c.couleur) && this.hauteur.equals(c.hauteur)) {
+                result = true;
+            }
+        }
+        catch (Exception e) {
+            System.out.println("Carte : erreur equals");
+        }
+        return result;
+    }
+    
     public String getCouleur() {
         return this.couleur;
     }
