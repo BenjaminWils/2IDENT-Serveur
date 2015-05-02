@@ -62,7 +62,7 @@ public class Connexion extends Thread {
                     if (msg.matches("pseudo::validation::.*")) {
                         pseudo = msg.split("pseudo::validation::")[1];
                         synchronized (Serveur.listeConnexions) {
-                            if (Serveur.isPseudoPresent(pseudo) || pseudo.length() > 20) {
+                            if (Serveur.isPseudoPresent(pseudo) || pseudo.length() > 20 || pseudo.equals("[@Moderation]")) {
                                 this.ecrireMessage("pseudo::dispo::ko");
                             }
                             else {

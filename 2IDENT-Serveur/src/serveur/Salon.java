@@ -163,7 +163,7 @@ public class Salon extends Thread {
                          throw new SocketException("Absence de réponse d'un/de joueur(s)");
                          }
                          */
-                        this.ecrireMessageAll("jeu::infosCartesRestantes::" + this.mains.listerCartes(this.cartes.cartesRestantes).toJSONString());
+                        this.ecrireMessageAll("chat::[@Moderation]::Les cartes non distribuées sont : " + this.mains.listerCartesS(this.cartes.cartesRestantes));
 
                         /*
                          if (!this.areReadyConnections(5)) {
@@ -399,7 +399,6 @@ public class Salon extends Thread {
                                                 for (Carte ca : cartesJouees) {
                                                     this.mains.jouerCarte(tourJoueur.nomJoueur, ca);
                                                 }
-                                                this.fosse.poserCartes(tourJoueur.nomJoueur, cartesJouees);
                                                 this.ecrireMessageAll("jeu::infosJoueurs::" + this.listerJoueurs().toJSONString());
                                                 /*
                                                  if (!this.areReadyConnections(5)) {
@@ -422,6 +421,7 @@ public class Salon extends Thread {
                                                      */
                                                     this.ecrireMessageAll("jeu::sessionSuivante");
                                                 }
+                                                this.fosse.poserCartes(tourJoueur.nomJoueur, cartesJouees);
                                                 if (this.mains.getMainJoueur(tourJoueur.nomJoueur).isEmpty()) {
                                                     this.modo.mainVide(tourJoueur);
                                                     if (cartesJouees.get(0).getHauteur().equals("2")) {
@@ -431,7 +431,7 @@ public class Salon extends Thread {
                                                          throw new SocketException("Absence de réponse d'un/de joueur(s)");
                                                          }
                                                          */
-                                                        this.ecrireMessageAll("chat::" + tourJoueur.nomJoueur + ", vous avez joué un 2 en dernier. Vous serez Trou du Cul à la prochaine partie.");
+                                                        this.ecrireMessageAll("chat::[@Moderation]::" + tourJoueur.nomJoueur + ", vous avez joué un 2 en dernier. Vous serez Trou du Cul à la prochaine partie.");
                                                     }
                                                     if (this.modo.ordreFinJoueurs.size() == this.nbJoueurs - 1) {
                                                         // Fin de la partie - 1 seul joueur a encore des cartes

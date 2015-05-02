@@ -33,6 +33,39 @@ public class Carte {
         return result;
     }
     
+    public String chaineLongue() {
+        String c = "";
+        if (this.hauteur.equals("11")) {
+            c += "Valet ";
+        }
+        else if (this.hauteur.equals("12")) {
+            c += "Dame ";
+        }
+        else if (this.hauteur.equals("13")) {
+            c += "Roi ";
+        }
+        else if (this.hauteur.equals("14")) {
+            c += "As ";
+        }
+        else {
+            c += this.hauteur + " ";
+        }
+        
+        if (this.couleur.equals("CA")) {
+            c += "de carreau";
+        }
+        else if (this.couleur.equals("CO")) {
+            c += "de coeur";
+        }
+        else if (this.couleur.equals("PI")) {
+            c += "de pique";
+        }
+        else if (this.couleur.equals("TR")) {
+            c += "de trêfle";
+        }
+        return c;
+    }
+    
     public String getCouleur() {
         return this.couleur;
     }

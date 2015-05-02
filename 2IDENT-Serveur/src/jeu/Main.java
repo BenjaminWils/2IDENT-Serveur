@@ -74,6 +74,17 @@ public class Main {
         return listeCartes;
     }
     
+    public String listerCartesS(ArrayList<Carte> cartes) {
+        String cartesS = "";
+        if (cartes.size() != 0) {
+            for (Carte c : cartes) {
+                cartesS += c.chaineLongue() + " - ";
+            }
+            cartesS = cartesS.substring(0, cartesS.length() - 3);
+        }       
+        return cartesS;
+    }
+    
     public boolean carteDupliquee(ArrayList<Carte> cartes) {
         for (int i = 0; i < cartes.size(); i++) {
 	    for (int j = i + 1; j < cartes.size(); j++) {
