@@ -151,7 +151,7 @@ public class Moderateur {
                 // tout nb de cartes entre 1 et 4 autorisé
                 // si hauteur identique, entre 1 et 3 cartes
                 // si hauteur supérieure, entre 1 et 4 cartes
-                if (cartes.size() == 1 && Integer.valueOf(cartes.get(0).getHauteur()) >= Integer.valueOf(defossees.get(0).getHauteur())) {
+                if (cartes.size() == 1 && (Integer.valueOf(cartes.get(0).getHauteur()) >= Integer.valueOf(defossees.get(0).getHauteur()) || cartes.get(0).getHauteur().equals("2"))) {
                     flag = true;
                 } else if (cartes.size() == 2) {
                     String hauteur = cartes.get(0).getHauteur();

@@ -412,7 +412,7 @@ public class Salon extends Thread {
                                                  }
                                                  */
                                                 this.ecrireMessageAll("jeu::cartesPosees::" + this.mains.listerCartes(cartesJouees).toJSONString());
-                                                if (cartesJouees.get(0).getHauteur().equals("2") || (!this.fosse.getDerniersCartesPosees().isEmpty() && (cartesJouees.size() + this.fosse.getDerniersCartesPosees().size()) == 4 && this.fosse.getDerniersCartesPosees().get(0).getHauteur().equals(cartesJouees.get(0).getHauteur()))) {
+                                                if (cartesJouees.get(0).getHauteur().equals("2") || cartesJouees.size() == 4 || (!this.fosse.getDerniersCartesPosees().isEmpty() && (cartesJouees.size() + this.fosse.getDerniersCartesPosees().size()) == 4 && this.fosse.getDerniersCartesPosees().get(0).getHauteur().equals(cartesJouees.get(0).getHauteur()))) {
                                                     sessionPoursuivie = false;
                                                     /*
                                                      if (!this.areReadyConnections(5)) {
