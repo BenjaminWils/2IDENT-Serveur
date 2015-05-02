@@ -124,8 +124,20 @@ public class Moderateur {
     public boolean carteAutorisee(ArrayList<Carte> cartes) {
         boolean flag = false;
         ArrayList<Carte> defossees = this.salle.fosse.getDerniersCartesPosees();
+        ArrayList<Carte> defosseesA = this.salle.fosse.getADerniersCartesPosees();
+        
         if (cartes.size() < 5) {
-            if (defossees.isEmpty() || defossees.size() == 4 || (defossees.size() > 0 && defossees.get(0).getHauteur().equals("2"))) {
+            if (defossees.size() == 1 && defosseesA.size() == 1 && defossees.get(0).getHauteur().equals(defosseesA.get(0).getHauteur())) {
+                if (cartes.size() == 1 && cartes.get(0).getHauteur().equals(defossees.get(0).getHauteur())) {
+                    flag = true;
+                }
+                else if (cartes.size() == 2) {
+                    if (cartes.get(0).getHauteur().equals(cartes.get(1).getHauteur()) && cartes.get(0).getHauteur().equals(defossees.get(0).getHauteur())) {
+                        flag = true;
+                    }
+                }
+            }
+            else if (defossees.isEmpty() || defossees.size() == 4 || (defossees.size() > 0 && defossees.get(0).getHauteur().equals("2"))) {
                 // -> nouvelle session
                 // tout nb de cartes entre 1 et 4 autorisé
                 // toute hauteur autorisée 
