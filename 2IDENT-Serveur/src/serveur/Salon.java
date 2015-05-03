@@ -349,13 +349,17 @@ public class Salon extends Thread {
                          */
 
                         boolean sessionSuivante = true;
+                        Connexion tourJoue = null;
                         while (sessionSuivante) {
                             boolean sessionPoursuivie = true;
+                            ArrayList<Connexion> interditsListe = new ArrayList();
                             while (sessionPoursuivie) {
                                 premierePartie = false;
+                                boolean msgAttendu = false;
+                                
                                 // Annonce du premier joueur qui joue
                                 Connexion tourJoueur = this.modo.getNextJoueurSession();
-                                while (this.mains.getMainJoueur(tourJoueur.nomJoueur).isEmpty()) {
+                                while (interditsListe.contains(tourJoueur) || this.mains.getMainJoueur(tourJoueur.nomJoueur).isEmpty()) {
                                     tourJoueur = this.modo.getNextJoueurSession();
                                 }
                                 this.ecrireMessageAll("jeu::tour::" + tourJoueur.nomJoueur);
@@ -369,11 +373,21 @@ public class Salon extends Thread {
                                 // /!\ Réflexion en terme de combinaisons de carte
                                 ArrayList<Carte> main = this.mains.getMainJoueur(tourJoueur.nomJoueur);
                                 ArrayList<ArrayList<Carte>> combinaisons = this.modo.combinaisonsAutorisees(main);
-
-                                this.ecrireMessage(tourJoueur, "jeu::cartesJouables::" + this.modo.listerCombinaisons(combinaisons).toJSONString());
-
+                                if (combinaisons.isEmpty() && tourJoueur.equals(tourJoue)) {
+                                    this.ecrireMessageAll("jeu::sessionSuivante");
+                                    this.modo.finSession();
+                                    interditsListe.clear();
+                                    this.ecrireMessageAll("jeu::tour::" + tourJoueur.nomJoueur);
+                                    combinaisons = this.modo.combinaisonsAutorisees(main);
+                                }
+                                if (combinaisons.isEmpty()) {
+                                    this.ecrireMessageAll("chat::[@Moderation]::" + tourJoueur.nomJoueur + ", aucune combinaison de vos cartes n'est possible. On passe au joueur suivant.");;
+                                }
+                                else {
+                                    this.ecrireMessage(tourJoueur, "jeu::cartesJouables::" + this.modo.listerCombinaisons(combinaisons).toJSONString());
+                                }
                                 // Attente d'infos du joueur dont c'est le tour
-                                boolean msgAttendu = false;
+                                
                                 while (!msgAttendu) {
                                     this.semaphore.acquire();
                                     String msgJoueurTour = tourJoueur.currentMsg;
@@ -381,10 +395,19 @@ public class Salon extends Thread {
                                         this.ecrireMessage(tourJoueur, "erreur::En attente des cartes jouées !");
                                     } else {
                                         String chaineCartes = msgJoueurTour.split("::")[2];
-                                        if (chaineCartes.equals("")) {
-                                            // Passe son tour
-                                            msgAttendu = true;
-                                        } else {
+                                        if (chaineCartes.equals("") || chaineCartes.equals("[]")) {
+                                            if (combinaisons.isEmpty()) {
+                                                // Passe son tour sous la contrainte
+                                                msgAttendu = true;
+                                            }
+                                            else {
+                                                // Passe son tour volontairement
+                                                // -> Ne peut plus jouer avant la fin de la session
+                                                interditsListe.add(tourJoueur);
+                                                this.ecrireMessageAll("chat::[@Moderation]::" + tourJoueur.nomJoueur + ", vous avez passé volontairement. Vous ne pourrez plus jouer jusqu'à la fin de la session !");
+                                            }
+                                        }
+                                        else {
                                             ArrayList<Carte> cartesJouees = this.mains.parserJSON(chaineCartes);
                                             boolean cartesDeLaMain = true;
                                             for (Carte ca : cartesJouees) {
@@ -396,6 +419,7 @@ public class Salon extends Thread {
                                                 this.ecrireMessage(tourJoueur, "erreur::Ces cartes ne font pas partie de votre jeu !");
                                             } else if (!this.mains.carteDupliquee(cartesJouees) && this.modo.carteAutorisee(cartesJouees)) {
                                                 msgAttendu = true;
+                                                tourJoue = tourJoueur;
                                                 for (Carte ca : cartesJouees) {
                                                     this.mains.jouerCarte(tourJoueur.nomJoueur, ca);
                                                 }
@@ -485,6 +509,19 @@ public class Salon extends Thread {
                     this.nettoyage();
                 } catch (IOException e) {
                     System.out.println("Passage IO");
+                    // Atteint dès lors qu'un client a été déconnecté
+                    synchronized (this.coJoueurs) {
+                        ArrayList<Connexion> tmp = this.checkConnexions();
+                        if (tmp.size() > 0) {
+                            for (Connexion co : tmp) {
+                                this.ecrireMessageAll("salon::deconnection::" + co.nomJoueur);
+                            }
+                        }
+                    }
+                    repriseSalon = true;
+                    this.nettoyage();
+                } catch (NullPointerException e) {
+                    System.out.println("Passage nullPointer");
                     // Atteint dès lors qu'un client a été déconnecté
                     synchronized (this.coJoueurs) {
                         ArrayList<Connexion> tmp = this.checkConnexions();
