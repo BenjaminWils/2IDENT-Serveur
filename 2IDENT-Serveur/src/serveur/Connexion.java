@@ -176,8 +176,10 @@ public class Connexion extends Thread {
                 System.out.println("Réception depuis " + this.nomJoueur + " : " + msg);
                 while ((msg != null) && (this.salle != null) && (!msg.matches("connection::fin::.*"))) {
                     if (msg.matches("chat::.*")) {
-                        String contenu = msg.split("::")[1];
-                        this.salle.ecrireMessageAll("chat::" + this.nomJoueur + "::" + contenu);
+                        if (!msg.equals("chat::")) {
+                            String contenu = msg.split("::")[1];
+                            this.salle.ecrireMessageAll("chat::" + this.nomJoueur + "::" + contenu);
+                        }
                     } else if (msg.matches("READY")) {
                         this.salle.repondre(this);
                     } else if (msg.matches("salon::reprise::.*")) {

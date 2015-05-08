@@ -36,6 +36,7 @@ public class Salon extends Thread {
     public Semaphore semaphore;
 
     public boolean aSyncRep = false;
+    public boolean aPasse = false;
 
     private ArrayList<Connexion> reponses;
     private int nbReponsesNeg;
@@ -350,10 +351,11 @@ public class Salon extends Thread {
 
                         boolean sessionSuivante = true;
                         Connexion tourJoue = null;
+                        Connexion tourJoueur = null;
+                        
+                        boolean gardeLaMain = false;
                         while (sessionSuivante) {
                             boolean sessionPoursuivie = true;
-                            boolean gardeLaMain = false;
-                            Connexion tourJoueur = null;
                             ArrayList<Connexion> interditsListe = new ArrayList();
                             while (sessionPoursuivie) {
                                 premierePartie = false;
@@ -362,14 +364,16 @@ public class Salon extends Thread {
                                 // Annonce du premier joueur qui joue
                                 if (!gardeLaMain) {
                                     tourJoueur = this.modo.getNextJoueurSession();
-                                    while (interditsListe.contains(tourJoueur) || this.mains.getMainJoueur(tourJoueur.nomJoueur).isEmpty()) {
-                                        tourJoueur = this.modo.getNextJoueurSession();
+                                    if (!this.mains.getMainJoueur(tourJoueur.nomJoueur).isEmpty()) {
+                                        while (interditsListe.contains(tourJoueur)) {
+                                            tourJoueur = this.modo.getNextJoueurSession();
+                                        }
                                     }
                                 }
                                 else {
                                     gardeLaMain = false;
                                 }
-                                this.ecrireMessageAll("jeu::tour::" + tourJoueur.nomJoueur);
+                                
 
                                 /*
                                  if (!this.areReadyConnections(5)) {
@@ -379,16 +383,30 @@ public class Salon extends Thread {
                                 // Informe le joueur dont c'est le tour des cartes qu'il peut jouer
                                 // /!\ Réflexion en terme de combinaisons de carte
                                 ArrayList<Carte> main = this.mains.getMainJoueur(tourJoueur.nomJoueur);
+                                if (!main.isEmpty()) {
+                                    this.ecrireMessageAll("jeu::tour::" + tourJoueur.nomJoueur);
+                                }
+
                                 ArrayList<ArrayList<Carte>> combinaisons = this.modo.combinaisonsAutorisees(main);
                                 if (combinaisons.isEmpty() && tourJoueur.equals(tourJoue)) {
                                     this.ecrireMessageAll("jeu::sessionSuivante");
                                     this.modo.finSession();
+                                    this.ecrireMessageAll("chat::[@Moderation]::Tout le monde a passé. Fin de session. " + tourJoueur.nomJoueur + " est le dernier joueur à avoir joué.");
                                     interditsListe.clear();
                                     this.ecrireMessageAll("jeu::tour::" + tourJoueur.nomJoueur);
                                     combinaisons = this.modo.combinaisonsAutorisees(main);
                                 }
                                 if (combinaisons.isEmpty()) {
-                                    this.ecrireMessageAll("chat::[@Moderation]::" + tourJoueur.nomJoueur + ", aucune combinaison de vos cartes n'est possible. On passe au joueur suivant.");;
+                                    if (!main.isEmpty()) {
+                                        if (!this.aPasse && this.fosse.getDerniersCartesPosees().size() == 1 && this.fosse.getADerniersCartesPosees().size() == 1 && this.fosse.getDerniersCartesPosees().get(0).getHauteur().equals(this.fosse.getADerniersCartesPosees().get(0).getHauteur())) {
+                                            this.ecrireMessageAll("chat::[@Moderation]::" + tourJoueur.nomJoueur + ", vous n'avez pas la carte obligatoire. On passe au joueur suivant.");;
+                                        }
+                                        else {
+                                            this.ecrireMessageAll("chat::[@Moderation]::" + tourJoueur.nomJoueur + ", aucune combinaison de vos cartes n'est possible. On passe au joueur suivant.");;
+                                        }
+                                    }
+                                    msgAttendu = true;
+                                    aPasse = true;
                                 }
                                 else {
                                     this.ecrireMessage(tourJoueur, "jeu::cartesJouables::" + this.modo.listerCombinaisons(combinaisons).toJSONString());
@@ -418,6 +436,7 @@ public class Salon extends Thread {
                                                 interditsListe.add(tourJoueur);
                                                 this.ecrireMessageAll("chat::[@Moderation]::" + tourJoueur.nomJoueur + ", vous avez passé volontairement. Vous ne pourrez plus jouer jusqu'à la fin de la session !");
                                                 msgAttendu = true;
+                                                aPasse = true;
                                             }
                                         }
                                         else {
@@ -432,6 +451,7 @@ public class Salon extends Thread {
                                                 this.ecrireMessage(tourJoueur, "erreur::Ces cartes ne font pas partie de votre jeu !");
                                             } else if (!this.mains.carteDupliquee(cartesJouees) && this.modo.carteAutorisee(cartesJouees)) {
                                                 msgAttendu = true;
+                                                aPasse = false;
                                                 tourJoue = tourJoueur;
                                                 for (Carte ca : cartesJouees) {
                                                     this.mains.jouerCarte(tourJoueur.nomJoueur, ca);
@@ -476,6 +496,7 @@ public class Salon extends Thread {
                                                     if (this.modo.ordreFinJoueurs.size() == this.nbJoueurs - 1) {
                                                         // Fin de la partie - 1 seul joueur a encore des cartes
                                                         sessionSuivante = false;
+                                                        sessionPoursuivie = false;
                                                         synchronized (this.coJoueurs) {
                                                             for (Connexion co : this.coJoueurs) {
                                                                 if (!this.modo.ordreFinJoueurs.contains(co)) {
@@ -501,6 +522,12 @@ public class Salon extends Thread {
 
                             }
                             this.modo.finSession();
+                            if (gardeLaMain) {
+                                this.ecrireMessageAll("chat::[@Moderation]::Fin de session. " + tourJoueur.nomJoueur + " garde la main.");
+                            }
+                            else {
+                                this.ecrireMessageAll("chat::[@Moderation]::Fin de session. Au joueur suivant.");
+                            }
                         }
                         /*
                          if (!this.areReadyConnections(5)) {
@@ -509,6 +536,7 @@ public class Salon extends Thread {
                          */
 
                         this.modo.finPartie();
+                        this.ecrireMessageAll("chat::[@Moderation]::Fin de la partie. Distribution des cartes.");
                     }
                 } catch (SocketException e) {
                     System.out.println("Passage socket");

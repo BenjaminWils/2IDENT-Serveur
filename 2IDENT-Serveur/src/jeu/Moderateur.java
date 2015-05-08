@@ -127,7 +127,7 @@ public class Moderateur {
         ArrayList<Carte> defosseesA = this.salle.fosse.getADerniersCartesPosees();
         
         if (cartes.size() < 5) {
-            if (defossees.size() == 1 && defosseesA.size() == 1 && defossees.get(0).getHauteur().equals(defosseesA.get(0).getHauteur())) {
+            if (!this.salle.aPasse && defossees.size() == 1 && defosseesA.size() == 1 && defossees.get(0).getHauteur().equals(defosseesA.get(0).getHauteur())) {
                 if (cartes.size() == 1 && cartes.get(0).getHauteur().equals(defossees.get(0).getHauteur())) {
                     flag = true;
                 }
