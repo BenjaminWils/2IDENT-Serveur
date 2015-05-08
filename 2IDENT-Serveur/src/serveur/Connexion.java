@@ -194,6 +194,7 @@ public class Connexion extends Thread {
                         this.ecrireMessage("erreur::Type inattendu");
                     }
                     msg = this.in.readLine();
+                    System.out.println("Réception depuis " + this.nomJoueur + " : " + msg);
                 }
                 
                 if (msg.matches("connection::fin::.*")) {

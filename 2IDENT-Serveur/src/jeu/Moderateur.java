@@ -131,11 +131,6 @@ public class Moderateur {
                 if (cartes.size() == 1 && cartes.get(0).getHauteur().equals(defossees.get(0).getHauteur())) {
                     flag = true;
                 }
-                else if (cartes.size() == 2) {
-                    if (cartes.get(0).getHauteur().equals(cartes.get(1).getHauteur()) && cartes.get(0).getHauteur().equals(defossees.get(0).getHauteur())) {
-                        flag = true;
-                    }
-                }
             }
             else if (defossees.isEmpty() || defossees.size() == 4 || (defossees.size() > 0 && defossees.get(0).getHauteur().equals("2"))) {
                 // -> nouvelle session
@@ -165,27 +160,6 @@ public class Moderateur {
                 // si hauteur supérieure, entre 1 et 4 cartes
                 if (cartes.size() == 1 && (Integer.valueOf(cartes.get(0).getHauteur()) >= Integer.valueOf(defossees.get(0).getHauteur()) || cartes.get(0).getHauteur().equals("2"))) {
                     flag = true;
-                } else if (cartes.size() == 2) {
-                    String hauteur = cartes.get(0).getHauteur();
-                    if (hauteur.equals(cartes.get(1).getHauteur())) {
-                        if (Integer.valueOf(hauteur) >= Integer.valueOf(defossees.get(0).getHauteur()) || hauteur.equals("2")) {
-                            flag = true;
-                        }
-                    }
-                } else if (cartes.size() == 3) {
-                    String hauteur = cartes.get(0).getHauteur();
-                    if (hauteur.equals(cartes.get(1).getHauteur()) && hauteur.equals(cartes.get(2).getHauteur())) {
-                        if (Integer.valueOf(hauteur) >= Integer.valueOf(defossees.get(0).getHauteur()) || hauteur.equals("2")) {
-                            flag = true;
-                        }
-                    }
-                } else if (cartes.size() == 4) {
-                    String hauteur = cartes.get(0).getHauteur();
-                    if (hauteur.equals(cartes.get(1).getHauteur()) && hauteur.equals(cartes.get(2).getHauteur()) && hauteur.equals(cartes.get(3).getHauteur())) {
-                        if (Integer.valueOf(hauteur) > Integer.valueOf(defossees.get(0).getHauteur()) || hauteur.equals("2")) {
-                            flag = true;
-                        }
-                    }
                 }
             } else if (defossees.size() == 2) {
                 // nb de cartes entre 2 et 4 autorisé
@@ -198,20 +172,6 @@ public class Moderateur {
                             flag = true;
                         }
                     }
-                } else if (cartes.size() == 3) {
-                    String hauteur = cartes.get(0).getHauteur();
-                    if (hauteur.equals(cartes.get(1).getHauteur()) && hauteur.equals(cartes.get(2).getHauteur())) {
-                        if (Integer.valueOf(hauteur) > Integer.valueOf(defossees.get(0).getHauteur()) || hauteur.equals("2")) {
-                            flag = true;
-                        }
-                    }
-                } else if (cartes.size() == 4) {
-                    String hauteur = cartes.get(0).getHauteur();
-                    if (hauteur.equals(cartes.get(1).getHauteur()) && hauteur.equals(cartes.get(2).getHauteur()) && hauteur.equals(cartes.get(3).getHauteur())) {
-                        if (Integer.valueOf(hauteur) > Integer.valueOf(defossees.get(0).getHauteur()) || hauteur.equals("2")) {
-                            flag = true;
-                        }
-                    }
                 }
             } else if (defossees.size() == 3) {
                 // nb de cartes entre 3 et 4 autorisé
@@ -219,13 +179,6 @@ public class Moderateur {
                 if (cartes.size() == 3) {
                     String hauteur = cartes.get(0).getHauteur();
                     if (hauteur.equals(cartes.get(1).getHauteur()) && hauteur.equals(cartes.get(2).getHauteur())) {
-                        if (Integer.valueOf(hauteur) > Integer.valueOf(defossees.get(0).getHauteur()) || hauteur.equals("2")) {
-                            flag = true;
-                        }
-                    }
-                } else if (cartes.size() == 4) {
-                    String hauteur = cartes.get(0).getHauteur();
-                    if (hauteur.equals(cartes.get(1).getHauteur()) && hauteur.equals(cartes.get(2).getHauteur()) && hauteur.equals(cartes.get(3).getHauteur())) {
                         if (Integer.valueOf(hauteur) > Integer.valueOf(defossees.get(0).getHauteur()) || hauteur.equals("2")) {
                             flag = true;
                         }

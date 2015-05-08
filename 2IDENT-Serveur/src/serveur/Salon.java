@@ -391,6 +391,7 @@ public class Salon extends Thread {
                                 while (!msgAttendu) {
                                     this.semaphore.acquire();
                                     String msgJoueurTour = tourJoueur.currentMsg;
+                                    System.out.println(msgJoueurTour);
                                     if (!msgJoueurTour.matches("jeu::cartesJouees::.*")) {
                                         this.ecrireMessage(tourJoueur, "erreur::En attente des cartes jouées !");
                                     } else {
@@ -436,7 +437,9 @@ public class Salon extends Thread {
                                                  }
                                                  */
                                                 this.ecrireMessageAll("jeu::cartesPosees::" + this.mains.listerCartes(cartesJouees).toJSONString());
-                                                if (cartesJouees.get(0).getHauteur().equals("2") || cartesJouees.size() == 4 || (!this.fosse.getDerniersCartesPosees().isEmpty() && (cartesJouees.size() + this.fosse.getDerniersCartesPosees().size()) == 4 && this.fosse.getDerniersCartesPosees().get(0).getHauteur().equals(cartesJouees.get(0).getHauteur()))) {
+                                                if (cartesJouees.get(0).getHauteur().equals("2") || cartesJouees.size() == 4 || 
+                                                        (!this.fosse.getDerniersCartesPosees().isEmpty() && (
+                                                            ((cartesJouees.size() + this.fosse.getDerniersCartesPosees().size()) == 4 && this.fosse.getDerniersCartesPosees().get(0).getHauteur().equals(cartesJouees.get(0).getHauteur())) || (!this.fosse.getADerniersCartesPosees().isEmpty() && !this.fosse.getAADerniersCartesPosees().isEmpty() && (cartesJouees.size() + this.fosse.getDerniersCartesPosees().size() + this.fosse.getADerniersCartesPosees().size() + this.fosse.getAADerniersCartesPosees().size()) == 4 && cartesJouees.get(0).getHauteur().equals(this.fosse.getDerniersCartesPosees().get(0).getHauteur()) && cartesJouees.get(0).getHauteur().equals(this.fosse.getADerniersCartesPosees().get(0).getHauteur()) && cartesJouees.get(0).getHauteur().equals(this.fosse.getAADerniersCartesPosees().get(0).getHauteur()))))) {
                                                     sessionPoursuivie = false;
                                                     /*
                                                      if (!this.areReadyConnections(5)) {

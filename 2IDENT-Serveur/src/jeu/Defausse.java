@@ -45,6 +45,14 @@ public class Defausse {
         return cartes;
     }
     
+    public ArrayList<Carte> getAADerniersCartesPosees() {
+        ArrayList<Carte> cartes = new ArrayList();
+        if (this.pile.size() > 2) {
+            cartes = this.pile.get(lastIndex - 2);
+        }
+        return cartes;
+    }
+    
     public void signalerFinSession() {
         this.lastIndex++;
         ArrayList<Carte> cartes = new ArrayList();
