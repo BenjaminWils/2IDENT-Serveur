@@ -166,7 +166,7 @@ public class Salon extends Thread {
                          throw new SocketException("Absence de réponse d'un/de joueur(s)");
                          }
                          */
-                        this.ecrireMessageAll("chat::[@Moderation]::[" + new SimpleDateFormat("hh:mm:ss").format(new Date()) + "] Les cartes non distribuées sont : " + this.mains.listerCartesS(this.cartes.cartesRestantes));
+                        this.ecrireMessageAll("chat::[@Moderation]::[" + new SimpleDateFormat("HH:mm:ss").format(new Date()) + "] Les cartes non distribuées sont : " + this.mains.listerCartesS(this.cartes.cartesRestantes));
 
                         /*
                          if (!this.areReadyConnections(5)) {
@@ -206,9 +206,14 @@ public class Salon extends Thread {
                                             }
                                             if (co.role == TypeRole.Secretaire && secretaire == null) {
                                                 secretaire = co;
+                                                this.ecrireMessage(co, "jeu::echange::secretaire");
                                             }
                                             if (co.role == TypeRole.TrouDuCul && trouDuc == null) {
                                                 trouDuc = co;
+                                                this.ecrireMessage(co, "jeu::echange::trouducul");
+                                            }
+                                            if (co.role == TypeRole.Neutre) {                                               
+                                                this.ecrireMessage(co, "jeu::echange::neutre");
                                             }
                                         }
                                     }
@@ -242,25 +247,26 @@ public class Salon extends Thread {
                                 secretaireC = this.modo.getCartesAEchanger(TypeRole.Secretaire);
                                 trouDucC = this.modo.getCartesAEchanger(TypeRole.TrouDuCul);
 
-                                this.ecrireMessage(trouDuc, "jeu::echange::donner::" + this.mains.listerCartes(trouDucC).toJSONString());
-                                this.ecrireMessage(secretaire, "jeu::echange::donner::" + this.mains.listerCartes(secretaireC).toJSONString());
-                                this.ecrireMessage(vicePresident, "jeu::echange::donner::" + this.mains.listerCartes(vicePresidentC).toJSONString());
-                                this.ecrireMessage(president, "jeu::echange::donner::" + this.mains.listerCartes(presidentC).toJSONString());
+                                this.ecrireMessage(trouDuc, "chat::[@Moderation]::[" + new SimpleDateFormat("HH:mm:ss").format(new Date()) + "] Vous donnez les cartes suivantes au président : " + this.mains.listerCartesS(trouDucC));
+                                this.ecrireMessage(secretaire, "chat::[@Moderation]::[" + new SimpleDateFormat("HH:mm:ss").format(new Date()) + "] Vous donnez les cartes suivantes au vice président : " + this.mains.listerCartesS(secretaireC));
+                                this.ecrireMessage(vicePresident, "chat::[@Moderation]::[" + new SimpleDateFormat("HH:mm:ss").format(new Date()) + "] Vous donnez les cartes suivantes au secrétaire : " + this.mains.listerCartesS(vicePresidentC));
+                                this.ecrireMessage(president, "chat::[@Moderation]::[" + new SimpleDateFormat("HH:mm:ss").format(new Date()) + "] Vous donnez les cartes suivantes au trou du cul : " + this.mains.listerCartesS(presidentC));
+                                /*
+                                if (!this.areReadyConnections(5)) {
+                                throw new SocketException("Absence de réponse d'un/de joueur(s)");
+                                }
+                                */
+                                this.ecrireMessage(trouDuc, "chat::[@Moderation]::[" + new SimpleDateFormat("HH:mm:ss").format(new Date()) + "] Vous recevez les cartes suivantes du président : " + this.mains.listerCartesS(presidentC));
+                                this.ecrireMessage(secretaire, "chat::[@Moderation]::[" + new SimpleDateFormat("HH:mm:ss").format(new Date()) + "] Vous recevez les cartes suivantes du vice président : " + this.mains.listerCartesS(vicePresidentC));
+                                this.ecrireMessage(vicePresident, "chat::[@Moderation]::[" + new SimpleDateFormat("HH:mm:ss").format(new Date()) + "] Vous recevez les cartes suivantes du secrétaire : " + this.mains.listerCartesS(secretaireC));
+                                this.ecrireMessage(president, "chat::[@Moderation]::[" + new SimpleDateFormat("HH:mm:ss").format(new Date()) + "] Vous recevez les cartes suivantes du trou du cul : " + this.mains.listerCartesS(trouDucC));
+
 
                                 this.mains.prendreCartes(trouDuc.nomJoueur, trouDucC);
                                 this.mains.prendreCartes(secretaire.nomJoueur, secretaireC);
                                 this.mains.prendreCartes(vicePresident.nomJoueur, vicePresidentC);
                                 this.mains.prendreCartes(president.nomJoueur, presidentC);
 
-                                /*
-                                 if (!this.areReadyConnections(5)) {
-                                 throw new SocketException("Absence de réponse d'un/de joueur(s)");
-                                 }
-                                 */
-                                this.ecrireMessage(trouDuc, "jeu::echange::recevoir::" + this.mains.listerCartes(presidentC).toJSONString());
-                                this.ecrireMessage(secretaire, "jeu::echange::recevoir::" + this.mains.listerCartes(vicePresidentC).toJSONString());
-                                this.ecrireMessage(vicePresident, "jeu::echange::recevoir::" + this.mains.listerCartes(secretaireC).toJSONString());
-                                this.ecrireMessage(president, "jeu::echange::recevoir::" + this.mains.listerCartes(trouDucC).toJSONString());
 
                                 this.mains.donnerCartes(trouDuc.nomJoueur, presidentC);
                                 this.mains.donnerCartes(secretaire.nomJoueur, vicePresidentC);
@@ -297,6 +303,10 @@ public class Salon extends Thread {
                                             }
                                             if (co.role == TypeRole.TrouDuCul && trouDuc == null) {
                                                 trouDuc = co;
+                                                this.ecrireMessage(co, "jeu::echange::trouducul");
+                                            }
+                                            if (co.role == TypeRole.Neutre) {                                               
+                                                this.ecrireMessage(co, "jeu::echange::neutre");
                                             }
                                         }
                                     }
@@ -319,19 +329,18 @@ public class Salon extends Thread {
 
                                 trouDucC = this.modo.getCartesAEchanger(TypeRole.TrouDuCul);
 
-                                this.ecrireMessage(trouDuc, "jeu::echange::donner::" + this.mains.listerCartes(trouDucC).toJSONString());
-                                this.ecrireMessage(president, "jeu::echange::donner::" + this.mains.listerCartes(presidentC).toJSONString());
+                                this.ecrireMessage(trouDuc, "chat::[@Moderation]::[" + new SimpleDateFormat("HH:mm:ss").format(new Date()) + "] Vous donnez les cartes suivantes au président : " + this.mains.listerCartesS(trouDucC));
+                                this.ecrireMessage(president, "chat::[@Moderation]::[" + new SimpleDateFormat("HH:mm:ss").format(new Date()) + "] Vous donnez les cartes suivantes au trou du cul : " + this.mains.listerCartesS(presidentC));
+                                /*
+                                if (!this.areReadyConnections(5)) {
+                                throw new SocketException("Absence de réponse d'un/de joueur(s)");
+                                }
+                                */
+                                this.ecrireMessage(trouDuc, "chat::[@Moderation]::[" + new SimpleDateFormat("HH:mm:ss").format(new Date()) + "] Vous recevez les cartes suivantes du président : " + this.mains.listerCartesS(presidentC));
+                                this.ecrireMessage(president, "chat::[@Moderation]::[" + new SimpleDateFormat("HH:mm:ss").format(new Date()) + "] Vous recevez les cartes suivantes du trou du cul : " + this.mains.listerCartesS(trouDucC));
 
                                 this.mains.prendreCartes(trouDuc.nomJoueur, trouDucC);
                                 this.mains.prendreCartes(president.nomJoueur, presidentC);
-
-                                /*
-                                 if (!this.areReadyConnections(5)) {
-                                 throw new SocketException("Absence de réponse d'un/de joueur(s)");
-                                 }
-                                 */
-                                this.ecrireMessage(trouDuc, "jeu::echange::recevoir::" + this.mains.listerCartes(presidentC).toJSONString());
-                                this.ecrireMessage(president, "jeu::echange::recevoir::" + this.mains.listerCartes(trouDucC).toJSONString());
 
                                 this.mains.donnerCartes(trouDuc.nomJoueur, presidentC);
                                 this.mains.donnerCartes(president.nomJoueur, trouDucC);
@@ -393,7 +402,7 @@ public class Salon extends Thread {
                                 if (!this.fosse.getDerniersCartesPosees().isEmpty() && tourJoueur.equals(tourJoue)) {
                                     this.ecrireMessageAll("jeu::sessionSuivante");
                                     this.modo.finSession();
-                                    this.ecrireMessageAll("chat::[@Moderation]::[" + new SimpleDateFormat("hh:mm:ss").format(new Date()) + "] Tout le monde a passé. Fin de session. " + tourJoueur.nomJoueur + " est le dernier joueur à avoir joué.");
+                                    this.ecrireMessageAll("chat::[@Moderation]::[" + new SimpleDateFormat("HH:mm:ss").format(new Date()) + "] Tout le monde a passé. Fin de session. " + tourJoueur.nomJoueur + " est le dernier joueur à avoir joué.");
                                     interditsListe.clear();
                                     this.ecrireMessageAll("jeu::tour::" + tourJoueur.nomJoueur);
                                     combinaisons = this.modo.combinaisonsAutorisees(main);
@@ -401,10 +410,10 @@ public class Salon extends Thread {
                                 if (combinaisons.isEmpty()) {
                                     if (!main.isEmpty()) {
                                         if (!this.aPasse && this.fosse.getDerniersCartesPosees().size() == 1 && this.fosse.getADerniersCartesPosees().size() == 1 && this.fosse.getDerniersCartesPosees().get(0).getHauteur().equals(this.fosse.getADerniersCartesPosees().get(0).getHauteur())) {
-                                            this.ecrireMessageAll("chat::[@Moderation]::[" + new SimpleDateFormat("hh:mm:ss").format(new Date()) + "] " + tourJoueur.nomJoueur + ", vous n'avez pas la carte obligatoire. On passe au joueur suivant.");;
+                                            this.ecrireMessageAll("chat::[@Moderation]::[" + new SimpleDateFormat("HH:mm:ss").format(new Date()) + "] " + tourJoueur.nomJoueur + ", vous n'avez pas la carte obligatoire. On passe au joueur suivant.");;
                                         }
                                         else {
-                                            this.ecrireMessageAll("chat::[@Moderation]::[" + new SimpleDateFormat("hh:mm:ss").format(new Date()) + "] " + tourJoueur.nomJoueur + ", aucune combinaison de vos cartes n'est possible. On passe au joueur suivant.");;
+                                            this.ecrireMessageAll("chat::[@Moderation]::[" + new SimpleDateFormat("HH:mm:ss").format(new Date()) + "] " + tourJoueur.nomJoueur + ", aucune combinaison de vos cartes n'est possible. On passe au joueur suivant.");;
                                         }
                                     }
                                     msgAttendu = true;
@@ -436,7 +445,7 @@ public class Salon extends Thread {
                                                 // Passe son tour volontairement
                                                 // -> Ne peut plus jouer avant la fin de la session
                                                 interditsListe.add(tourJoueur);
-                                                this.ecrireMessageAll("chat::[@Moderation]::[" + new SimpleDateFormat("hh:mm:ss").format(new Date()) + "] " + tourJoueur.nomJoueur + ", vous avez passé volontairement. Vous ne pourrez plus jouer jusqu'à la fin de la session !");
+                                                this.ecrireMessageAll("chat::[@Moderation]::[" + new SimpleDateFormat("HH:mm:ss").format(new Date()) + "] " + tourJoueur.nomJoueur + ", vous avez passé volontairement. Vous ne pourrez plus jouer jusqu'à la fin de la session !");
                                                 msgAttendu = true;
                                                 aPasse = true;
                                             }
@@ -493,7 +502,7 @@ public class Salon extends Thread {
                                                          throw new SocketException("Absence de réponse d'un/de joueur(s)");
                                                          }
                                                          */
-                                                        this.ecrireMessageAll("chat::[@Moderation]::[" + new SimpleDateFormat("hh:mm:ss").format(new Date()) + "] " + tourJoueur.nomJoueur + ", vous avez joué un 2 en dernier. Vous serez Trou du Cul à la prochaine partie.");
+                                                        this.ecrireMessageAll("chat::[@Moderation]::[" + new SimpleDateFormat("HH:mm:ss").format(new Date()) + "] " + tourJoueur.nomJoueur + ", vous avez joué un 2 en dernier. Vous serez Trou du Cul à la prochaine partie.");
                                                     }
                                                     if (this.modo.ordreFinJoueurs.size() == this.nbJoueurs - 1) {
                                                         // Fin de la partie - 1 seul joueur a encore des cartes
@@ -525,10 +534,10 @@ public class Salon extends Thread {
                             }
                             this.modo.finSession();
                             if (gardeLaMain) {
-                                this.ecrireMessageAll("chat::[@Moderation]::[" + new SimpleDateFormat("hh:mm:ss").format(new Date()) + "] Fin de session. " + tourJoueur.nomJoueur + " garde la main.");
+                                this.ecrireMessageAll("chat::[@Moderation]::[" + new SimpleDateFormat("HH:mm:ss").format(new Date()) + "] Fin de session. " + tourJoueur.nomJoueur + " garde la main.");
                             }
                             else {
-                                this.ecrireMessageAll("chat::[@Moderation]::[" + new SimpleDateFormat("hh:mm:ss").format(new Date()) + "] Fin de session. Au joueur suivant.");
+                                this.ecrireMessageAll("chat::[@Moderation]::[" + new SimpleDateFormat("HH:mm:ss").format(new Date()) + "] Fin de session. Au joueur suivant.");
                             }
                         }
                         /*
@@ -538,7 +547,7 @@ public class Salon extends Thread {
                          */
 
                         this.modo.finPartie();
-                        this.ecrireMessageAll("chat::[@Moderation]::[" + new SimpleDateFormat("hh:mm:ss").format(new Date()) + "] Fin de la partie. Distribution des cartes.");
+                        this.ecrireMessageAll("chat::[@Moderation]::[" + new SimpleDateFormat("HH:mm:ss").format(new Date()) + "] Fin de la partie. Distribution des cartes.");
                     }
                 } catch (SocketException e) {
                     System.out.println("Passage socket");

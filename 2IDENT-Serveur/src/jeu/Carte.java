@@ -1,10 +1,12 @@
 package jeu;
 
+import java.util.Comparator;
+
 /**
  *
  * @author Benjamin
  */
-public class Carte {
+public class Carte implements Comparable{
     private String hauteur;
     private String couleur;
     
@@ -75,7 +77,19 @@ public class Carte {
     }
     
     public static Carte parserCarte(String ca) {
-        Carte c = new Carte(ca.split("-",1)[0], ca.split("-",2)[1]);
+        Carte c = new Carte(ca.split("-",2)[0], ca.split("-",2)[1]);
         return c;
+    }
+
+    @Override
+    public int compareTo(Object o) {
+        int result = 0;
+        if (Integer.valueOf(this.hauteur) > Integer.valueOf(((Carte) o).getHauteur())) {
+            result = 1;
+        }
+        else if (Integer.valueOf(this.hauteur) < Integer.valueOf(((Carte) o).getHauteur())) {
+            result = -1;
+        }
+        return result;
     }
 }

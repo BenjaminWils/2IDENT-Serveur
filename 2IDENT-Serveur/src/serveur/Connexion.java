@@ -61,7 +61,7 @@ public class Connexion extends Thread {
                     this.ecrireMessage("error::1::Pseudo attendu");
                 } else {
                     if (msg.matches("pseudo::validation::.*")) {
-                        pseudo = msg.split("pseudo::validation::",2)[1];
+                        pseudo = msg.split("::",3)[2];
                         synchronized (Serveur.listeConnexions) {
                             if (Serveur.isPseudoPresent(pseudo) || pseudo.length() > 20 || pseudo.equals("[@Moderation]")) {
                                 this.ecrireMessage("pseudo::dispo::ko");
@@ -131,7 +131,7 @@ public class Connexion extends Thread {
                                 }
                             }
                         } else if (msg.matches("salon::creation::.*")) {
-                            String nomSalon = msg.split("::",3)[2];
+                            String nomSalon = msg.split("::",4)[2];
                             int nbJoueurs = Integer.valueOf(msg.split("::",4)[3]);
                             synchronized (Serveur.salons) {
                                 if (nomSalon.length() > 15) {
@@ -179,7 +179,7 @@ public class Connexion extends Thread {
                     if (msg.matches("chat::.*")) {
                         if (!msg.equals("chat::")) {
                             String contenu = msg.split("::",2)[1];
-                            this.salle.ecrireMessageAll("chat::" + this.nomJoueur + "::[" + new SimpleDateFormat("hh:mm:ss").format(new Date()) + "] " + contenu);
+                            this.salle.ecrireMessageAll("chat::" + this.nomJoueur + "::[" + new SimpleDateFormat("HH:mm:ss").format(new Date()) + "] " + contenu);
                         }
                     } else if (msg.matches("READY")) {
                         this.salle.repondre(this);

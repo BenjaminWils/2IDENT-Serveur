@@ -65,8 +65,17 @@ public class Moderateur {
         nbParties++;
         this.ordreFinJoueurs.clear();
         this.trouDucs.clear();
-        this.ordreTourJoueurs.clear();
-        this.indexTour = 0;
+        synchronized (this.salle.coJoueurs) {
+            for(Connexion c : this.salle.coJoueurs) {
+                if (c.role == TypeRole.TrouDuCul) {
+                    for (int i = 0; i < this.ordreTourJoueurs.size(); i++) {
+                        if (this.ordreTourJoueurs.get(i).nomJoueur.equals(c.nomJoueur)) {
+                            this.indexTour = i;
+                        }
+                    }
+                }
+            }
+        }
     }
     
     public void ajouterTrouDuc(Connexion co) {
@@ -196,42 +205,8 @@ public class Moderateur {
             if (this.ordreTourJoueurs.size() == this.salle.coJoueurs.size()) {
                 co = this.ordreTourJoueurs.get(this.indexTour % this.salle.coJoueurs.size());
                 this.indexTour++;
-            } else if (this.nbParties > 1) {
-                for (Connexion c : this.salle.coJoueurs) {
-                    if (!this.ordreTourJoueurs.contains(c) && c.role == TypeRole.President) {
-                        co = c;
-                    }
-                }
-                if (co == null) {
-                    for (Connexion c : this.salle.coJoueurs) {
-                        if (!this.ordreTourJoueurs.contains(c) && c.role == TypeRole.VicePresident) {
-                            co = c;
-                        }
-                    }
-                    if (co == null) {
-                        for (Connexion c : this.salle.coJoueurs) {
-                            if (!this.ordreTourJoueurs.contains(c) && c.role == TypeRole.Neutre) {
-                                co = c;
-                            }
-                        }
-                        if (co == null) {
-                            for (Connexion c : this.salle.coJoueurs) {
-                                if (!this.ordreTourJoueurs.contains(c) && c.role == TypeRole.Secretaire) {
-                                    co = c;
-                                }
-                            }
-                            if (co == null) {
-                                for (Connexion c : this.salle.coJoueurs) {
-                                    if (!this.ordreTourJoueurs.contains(c) && c.role == TypeRole.TrouDuCul) {
-                                        co = c;
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
-                this.ordreTourJoueurs.add(co);
-            } else {
+            }
+            else {
                 co = this.salle.coJoueurs.get(this.generateRandomNumber(0, this.salle.coJoueurs.size() - 1, rand));
                 while (this.ordreTourJoueurs.contains(co)) {
                     co = this.salle.coJoueurs.get(this.generateRandomNumber(0, this.salle.coJoueurs.size() - 1, rand));

@@ -1,6 +1,7 @@
 package jeu;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
@@ -23,6 +24,7 @@ public class Main {
         if (this.mains.containsKey(pseudo)) {
             cartes = this.mains.get(pseudo);
         }
+        Collections.sort(cartes);
         return cartes;
     }
     
