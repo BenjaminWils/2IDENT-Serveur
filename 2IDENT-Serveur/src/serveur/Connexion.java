@@ -194,6 +194,8 @@ public class Connexion extends Thread {
                         this.ecrireMessage("erreur::Type inattendu");
                     }
                     msg = this.in.readLine();
+                    testSocket(msg);
+                    this.currentMsg = msg;
                     System.out.println("Réception depuis " + this.nomJoueur + " : " + msg);
                 }
                 
