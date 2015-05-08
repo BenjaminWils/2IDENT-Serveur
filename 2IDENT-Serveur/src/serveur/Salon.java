@@ -352,15 +352,22 @@ public class Salon extends Thread {
                         Connexion tourJoue = null;
                         while (sessionSuivante) {
                             boolean sessionPoursuivie = true;
+                            boolean gardeLaMain = false;
+                            Connexion tourJoueur = null;
                             ArrayList<Connexion> interditsListe = new ArrayList();
                             while (sessionPoursuivie) {
                                 premierePartie = false;
                                 boolean msgAttendu = false;
                                 
                                 // Annonce du premier joueur qui joue
-                                Connexion tourJoueur = this.modo.getNextJoueurSession();
-                                while (interditsListe.contains(tourJoueur) || this.mains.getMainJoueur(tourJoueur.nomJoueur).isEmpty()) {
+                                if (!gardeLaMain) {
                                     tourJoueur = this.modo.getNextJoueurSession();
+                                    while (interditsListe.contains(tourJoueur) || this.mains.getMainJoueur(tourJoueur.nomJoueur).isEmpty()) {
+                                        tourJoueur = this.modo.getNextJoueurSession();
+                                    }
+                                }
+                                else {
+                                    gardeLaMain = false;
                                 }
                                 this.ecrireMessageAll("jeu::tour::" + tourJoueur.nomJoueur);
 
@@ -395,8 +402,12 @@ public class Salon extends Thread {
                                     if (!msgJoueurTour.matches("jeu::cartesJouees::.*")) {
                                         this.ecrireMessage(tourJoueur, "erreur::En attente des cartes jouées !");
                                     } else {
+                                        
+                                        if (msgJoueurTour.equals("jeu::cartesJouees::")) {
+                                            msgJoueurTour += "[]";
+                                        }
                                         String chaineCartes = msgJoueurTour.split("::")[2];
-                                        if (chaineCartes.equals("") || chaineCartes.equals("[]")) {
+                                        if (chaineCartes.equals("[]")) {
                                             if (combinaisons.isEmpty()) {
                                                 // Passe son tour sous la contrainte
                                                 msgAttendu = true;
@@ -406,6 +417,7 @@ public class Salon extends Thread {
                                                 // -> Ne peut plus jouer avant la fin de la session
                                                 interditsListe.add(tourJoueur);
                                                 this.ecrireMessageAll("chat::[@Moderation]::" + tourJoueur.nomJoueur + ", vous avez passé volontairement. Vous ne pourrez plus jouer jusqu'à la fin de la session !");
+                                                msgAttendu = true;
                                             }
                                         }
                                         else {
@@ -441,6 +453,7 @@ public class Salon extends Thread {
                                                         (!this.fosse.getDerniersCartesPosees().isEmpty() && (
                                                             ((cartesJouees.size() + this.fosse.getDerniersCartesPosees().size()) == 4 && this.fosse.getDerniersCartesPosees().get(0).getHauteur().equals(cartesJouees.get(0).getHauteur())) || (!this.fosse.getADerniersCartesPosees().isEmpty() && !this.fosse.getAADerniersCartesPosees().isEmpty() && (cartesJouees.size() + this.fosse.getDerniersCartesPosees().size() + this.fosse.getADerniersCartesPosees().size() + this.fosse.getAADerniersCartesPosees().size()) == 4 && cartesJouees.get(0).getHauteur().equals(this.fosse.getDerniersCartesPosees().get(0).getHauteur()) && cartesJouees.get(0).getHauteur().equals(this.fosse.getADerniersCartesPosees().get(0).getHauteur()) && cartesJouees.get(0).getHauteur().equals(this.fosse.getAADerniersCartesPosees().get(0).getHauteur()))))) {
                                                     sessionPoursuivie = false;
+                                                    gardeLaMain = true;
                                                     /*
                                                      if (!this.areReadyConnections(5)) {
                                                      throw new SocketException("Absence de réponse d'un/de joueur(s)");
