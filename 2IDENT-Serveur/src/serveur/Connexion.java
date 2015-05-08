@@ -183,23 +183,22 @@ public class Connexion extends Thread {
                         }
                     } else if (msg.matches("READY")) {
                         this.salle.repondre(this);
-                    } else if (msg.matches("salon::reprise::.*")) {
-                        // Gestion de la reprise de jeu Salon
-                        if (msg.equals("salon::reprise::oui")) {
-                            this.salle.repondre(this);
-                        } else if (msg.equals("salon::reprise::non")) {
-                            this.salle.repondre(this);
-                            this.salle.voterContre();
-                        }
                     } else if (msg.matches("jeu::.*")) {
                         this.salle.semaphore.release();
+                    } else if (msg.matches("salon::fin")) {
+                        synchronized(this.salle.coJoueurs) {
+                            this.salle.coJoueurs.remove(this);
+                        }
+                        this.salle = null;
                     } else {
                         this.ecrireMessage("erreur::Type inattendu");
                     }
-                    msg = this.in.readLine();
-                    testSocket(msg);
-                    this.currentMsg = msg;
-                    System.out.println("Réception depuis " + this.nomJoueur + " : " + msg);
+                    if ((msg != null) || (this.salle != null)) {
+                        msg = this.in.readLine();
+                        testSocket(msg);
+                        this.currentMsg = msg;
+                        System.out.println("Réception depuis " + this.nomJoueur + " : " + msg);
+                    }
                 }
                 
                 if (msg.matches("connection::fin::.*")) {

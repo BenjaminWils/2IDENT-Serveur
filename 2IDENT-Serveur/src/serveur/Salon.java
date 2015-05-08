@@ -68,37 +68,10 @@ public class Salon extends Thread {
     public void run() {
         System.out.println("Salon démarré");
         try {
-            boolean repriseSalon = false;
             boolean premierePartie = true;
-            int tentatives = 0;
             // Tant qu'il n'est pas interrompu
             while (!Thread.currentThread().isInterrupted()) {
                 try {
-                    if (repriseSalon) {
-                        // Si la déconnexion d'un joueur a interrompu une partie précédente
-                        this.nbJoueurs = this.getNbJoueurs();
-                        this.ecrireMessageAll("salon::reprise");
-
-                        tentatives = 0;
-                        this.nbReponsesNeg = 0;
-                        this.reponses.clear();
-                        this.aSyncAreReadyConnections();
-                        while (!this.aSyncRep && this.nbReponsesNeg == 0 && tentatives < 20) {
-                            tentatives++;
-                            this.aSyncAreReadyConnections();
-                        }
-
-                        if (this.nbReponsesNeg > 0) {
-                            this.ecrireMessageAll("salon::fin");
-                            synchronized (this.coJoueurs) {
-                                for (Connexion co : this.coJoueurs) {
-                                    co.salle = null;
-                                }
-                            }
-                            Thread.currentThread().interrupt();
-                        }
-                    }
-
                     System.out.println("File d'attente");
 
                     // Démarre l'attente des joueurs
@@ -525,16 +498,16 @@ public class Salon extends Thread {
                                                             }
                                                         }
                                                         /*
-                                                         if (!this.areReadyConnections(5)) {
-                                                         throw new SocketException("Absence de réponse d'un/de joueur(s)");
-                                                         }
-                                                         */
+                                                        if (!this.areReadyConnections(5)) {
+                                                        throw new SocketException("Absence de réponse d'un/de joueur(s)");
+                                                        }
+                                                        */
                                                         this.ecrireMessageAll("jeu::sessionSuivante");
                                                         /*
-                                                         if (!this.areReadyConnections(5)) {
-                                                         throw new SocketException("Absence de réponse d'un/de joueur(s)");
-                                                         }
-                                                         */
+                                                        if (!this.areReadyConnections(5)) {
+                                                        throw new SocketException("Absence de réponse d'un/de joueur(s)");
+                                                        }
+                                                        */
                                                         this.ecrireMessageAll("jeu::partieSuivante");
                                                     }
                                                 }
@@ -564,58 +537,11 @@ public class Salon extends Thread {
                         this.modo.finPartie();
                         this.ecrireMessageAll("chat::[@Moderation]::[" + new SimpleDateFormat("HH:mm:ss").format(new Date()) + "] Fin de la partie. Distribution des cartes.");
                     }
-                } catch (SocketException e) {
-                    System.out.println("Passage socket");
-                    // Atteint dès lors qu'un client a été déconnecté
-                    synchronized (this.coJoueurs) {
-                        ArrayList<Connexion> tmp = this.checkConnexions();
-                        if (tmp.size() > 0) {
-                            for (Connexion co : tmp) {
-                                this.ecrireMessageAll("salon::deconnection::" + co.nomJoueur);
-                            }
-                        }
-                    }
-                    repriseSalon = true;
-                    this.nettoyage();
-                } catch (IOException e) {
-                    System.out.println("Passage IO" + e.getCause() + " " + e.getMessage());
-                    // Atteint dès lors qu'un client a été déconnecté
-                    synchronized (this.coJoueurs) {
-                        ArrayList<Connexion> tmp = this.checkConnexions();
-                        if (tmp.size() > 0) {
-                            for (Connexion co : tmp) {
-                                this.ecrireMessageAll("salon::deconnection::" + co.nomJoueur);
-                            }
-                        }
-                    }
-                    repriseSalon = true;
-                    this.nettoyage();
-                } catch (NullPointerException e) {
-                    System.out.println("Passage nullPointer" + e.getCause() + " " + e.getMessage());
-                    // Atteint dès lors qu'un client a été déconnecté
-                    synchronized (this.coJoueurs) {
-                        ArrayList<Connexion> tmp = this.checkConnexions();
-                        if (tmp.size() > 0) {
-                            for (Connexion co : tmp) {
-                                this.ecrireMessageAll("salon::deconnection::" + co.nomJoueur);
-                            }
-                        }
-                    }
-                    repriseSalon = true;
-                    this.nettoyage();
                 } catch (Exception e) {
-                    System.out.println("Passage Exception" + e.getCause() + " " + e.getMessage());
+                    System.out.println("Passage socket" + e.getCause() + " " + e.getMessage());
                     // Atteint dès lors qu'un client a été déconnecté
-                    synchronized (this.coJoueurs) {
-                        ArrayList<Connexion> tmp = this.checkConnexions();
-                        if (tmp.size() > 0) {
-                            for (Connexion co : tmp) {
-                                this.ecrireMessageAll("salon::deconnection::" + co.nomJoueur);
-                            }
-                        }
-                    }
-                    repriseSalon = true;
-                    this.nettoyage();
+                    this.ecrireMessageAll("salon::fin");
+                    Thread.currentThread().interrupt();
                 }
             }
         } catch (Exception e) {
