@@ -95,7 +95,7 @@ public class Salon extends Thread {
                                     co.salle = null;
                                 }
                             }
-                            throw new Exception("Salon terminé");
+                            Thread.currentThread().interrupt();
                         }
                     }
 
@@ -578,7 +578,7 @@ public class Salon extends Thread {
                     repriseSalon = true;
                     this.nettoyage();
                 } catch (IOException e) {
-                    System.out.println("Passage IO");
+                    System.out.println("Passage IO" + e.getCause() + " " + e.getMessage());
                     // Atteint dès lors qu'un client a été déconnecté
                     synchronized (this.coJoueurs) {
                         ArrayList<Connexion> tmp = this.checkConnexions();
@@ -591,7 +591,20 @@ public class Salon extends Thread {
                     repriseSalon = true;
                     this.nettoyage();
                 } catch (NullPointerException e) {
-                    System.out.println("Passage nullPointer" + e.getMessage());
+                    System.out.println("Passage nullPointer" + e.getCause() + " " + e.getMessage());
+                    // Atteint dès lors qu'un client a été déconnecté
+                    synchronized (this.coJoueurs) {
+                        ArrayList<Connexion> tmp = this.checkConnexions();
+                        if (tmp.size() > 0) {
+                            for (Connexion co : tmp) {
+                                this.ecrireMessageAll("salon::deconnection::" + co.nomJoueur);
+                            }
+                        }
+                    }
+                    repriseSalon = true;
+                    this.nettoyage();
+                } catch (Exception e) {
+                    System.out.println("Passage Exception" + e.getCause() + " " + e.getMessage());
                     // Atteint dès lors qu'un client a été déconnecté
                     synchronized (this.coJoueurs) {
                         ArrayList<Connexion> tmp = this.checkConnexions();
