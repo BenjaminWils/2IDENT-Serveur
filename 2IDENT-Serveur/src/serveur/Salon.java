@@ -217,7 +217,7 @@ public class Salon extends Thread {
                                             }
                                         }
                                     }
-                                    this.semaphore.acquire(2);
+                                    this.semaphore.acquire();
                                     if (president != null && president.currentMsg.matches("jeu::echange::.*")) {
                                         String presidentE = president.currentMsg.split("::",3)[2];
                                         presidentC = this.mains.parserJSON(presidentE);
@@ -272,12 +272,17 @@ public class Salon extends Thread {
                                 this.mains.donnerCartes(secretaire.nomJoueur, vicePresidentC);
                                 this.mains.donnerCartes(vicePresident.nomJoueur, secretaireC);
                                 this.mains.donnerCartes(president.nomJoueur, trouDucC);
-
                                 /*
-                                 if (!this.areReadyConnections(5)) {
-                                 throw new SocketException("Absence de réponse d'un/de joueur(s)");
-                                 }
-                                 */
+                                if (!this.areReadyConnections(5)) {
+                                throw new SocketException("Absence de réponse d'un/de joueur(s)");
+                                }
+                                */
+                                this.ecrireMessageAll("jeu::echange::fin");
+                                /*
+                                if (!this.areReadyConnections(5)) {
+                                throw new SocketException("Absence de réponse d'un/de joueur(s)");
+                                }
+                                */
                                 this.ecrireMessage(president, "jeu::infosCartes::" + this.mains.listerCartes(president.nomJoueur).toJSONString());
                                 this.ecrireMessage(trouDuc, "jeu::infosCartes::" + this.mains.listerCartes(trouDuc.nomJoueur).toJSONString());
                                 this.ecrireMessage(secretaire, "jeu::infosCartes::" + this.mains.listerCartes(secretaire.nomJoueur).toJSONString());
@@ -324,9 +329,8 @@ public class Salon extends Thread {
                                             PcartesDeLaMain = false;
                                         }
                                     }
-
                                 } while (presidentC == null || !PcartesDeLaMain);
-
+                                
                                 trouDucC = this.modo.getCartesAEchanger(TypeRole.TrouDuCul);
 
                                 this.ecrireMessage(trouDuc, "chat::[@Moderation]::[" + new SimpleDateFormat("HH:mm:ss").format(new Date()) + "] Vous donnez les cartes suivantes au président : " + this.mains.listerCartesS(trouDucC));
@@ -344,7 +348,12 @@ public class Salon extends Thread {
 
                                 this.mains.donnerCartes(trouDuc.nomJoueur, presidentC);
                                 this.mains.donnerCartes(president.nomJoueur, trouDucC);
-
+                                /*
+                                 if (!this.areReadyConnections(5)) {
+                                 throw new SocketException("Absence de réponse d'un/de joueur(s)");
+                                 }
+                                 */
+                                this.ecrireMessageAll("jeu::echange::fin");
                                 /*
                                  if (!this.areReadyConnections(5)) {
                                  throw new SocketException("Absence de réponse d'un/de joueur(s)");
@@ -415,9 +424,9 @@ public class Salon extends Thread {
                                         else {
                                             this.ecrireMessageAll("chat::[@Moderation]::[" + new SimpleDateFormat("HH:mm:ss").format(new Date()) + "] " + tourJoueur.nomJoueur + ", aucune combinaison de vos cartes n'est possible. On passe au joueur suivant.");;
                                         }
+                                        aPasse = true;
                                     }
                                     msgAttendu = true;
-                                    aPasse = true;
                                 }
                                 else {
                                     this.ecrireMessage(tourJoueur, "jeu::cartesJouables::" + this.modo.listerCombinaisons(combinaisons).toJSONString());
@@ -520,6 +529,12 @@ public class Salon extends Thread {
                                                          throw new SocketException("Absence de réponse d'un/de joueur(s)");
                                                          }
                                                          */
+                                                        this.ecrireMessageAll("jeu::sessionSuivante");
+                                                        /*
+                                                         if (!this.areReadyConnections(5)) {
+                                                         throw new SocketException("Absence de réponse d'un/de joueur(s)");
+                                                         }
+                                                         */
                                                         this.ecrireMessageAll("jeu::partieSuivante");
                                                     }
                                                 }
@@ -576,7 +591,7 @@ public class Salon extends Thread {
                     repriseSalon = true;
                     this.nettoyage();
                 } catch (NullPointerException e) {
-                    System.out.println("Passage nullPointer");
+                    System.out.println("Passage nullPointer" + e.getMessage());
                     // Atteint dès lors qu'un client a été déconnecté
                     synchronized (this.coJoueurs) {
                         ArrayList<Connexion> tmp = this.checkConnexions();

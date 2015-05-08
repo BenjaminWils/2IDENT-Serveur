@@ -218,7 +218,7 @@ public class Moderateur {
     }
     
     public ArrayList<Carte> getCartesAEchanger(TypeRole role) {
-        ArrayList<Carte> cartes = null;
+        ArrayList<Carte> cartes = new ArrayList();
         ArrayList<Carte> main = null;
         if (role != null && role != TypeRole.Neutre) {
             synchronized(this.salle.coJoueurs) {
