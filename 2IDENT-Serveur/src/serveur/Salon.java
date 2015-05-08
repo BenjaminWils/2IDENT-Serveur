@@ -538,8 +538,10 @@ public class Salon extends Thread {
                         this.ecrireMessageAll("chat::[@Moderation]::[" + new SimpleDateFormat("HH:mm:ss").format(new Date()) + "] Fin de la partie. Distribution des cartes.");
                     }
                 } catch (Exception e) {
-                    System.out.println("Passage socket" + e.getCause() + " " + e.getMessage());
+                    System.out.println("Exception : " + e.getCause() + " " + e.getMessage());
                     // Atteint dès lors qu'un client a été déconnecté
+                    this.checkConnexions();
+                    this.nettoyage();
                     this.ecrireMessageAll("salon::fin");
                     Thread.currentThread().interrupt();
                 }

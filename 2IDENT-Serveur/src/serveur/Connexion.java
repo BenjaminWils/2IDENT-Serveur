@@ -185,22 +185,22 @@ public class Connexion extends Thread {
                         this.salle.repondre(this);
                     } else if (msg.matches("jeu::.*")) {
                         this.salle.semaphore.release();
-                    } else if (msg.matches("salon::fin")) {
+                    } else if (msg.equals("salon::fin")) {
                         synchronized(this.salle.coJoueurs) {
                             this.salle.coJoueurs.remove(this);
+                            this.salle.semaphore.release();
                         }
                         this.salle = null;
                     } else {
                         this.ecrireMessage("erreur::Type inattendu");
                     }
-                    if ((msg != null) || (this.salle != null)) {
+                    if ((msg != null) && (this.salle != null)) {
                         msg = this.in.readLine();
                         testSocket(msg);
                         this.currentMsg = msg;
                         System.out.println("Réception depuis " + this.nomJoueur + " : " + msg);
                     }
                 }
-                
                 if (msg.matches("connection::fin::.*")) {
                     fin = true;
                 }
