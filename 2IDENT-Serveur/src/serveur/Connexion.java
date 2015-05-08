@@ -3,6 +3,7 @@ package serveur;
 import java.io.*;
 import static java.lang.Thread.sleep;
 import java.net.*;
+import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -60,7 +61,7 @@ public class Connexion extends Thread {
                     this.ecrireMessage("error::1::Pseudo attendu");
                 } else {
                     if (msg.matches("pseudo::validation::.*")) {
-                        pseudo = msg.split("pseudo::validation::")[1];
+                        pseudo = msg.split("pseudo::validation::",2)[1];
                         synchronized (Serveur.listeConnexions) {
                             if (Serveur.isPseudoPresent(pseudo) || pseudo.length() > 20 || pseudo.equals("[@Moderation]")) {
                                 this.ecrireMessage("pseudo::dispo::ko");
@@ -111,7 +112,7 @@ public class Connexion extends Thread {
                             this.ecrireMessage("salon::liste::" + Serveur.listerSalons().toJSONString());
                         } else if (msg.matches("salon::connection::.*")) {
                             synchronized (Serveur.salons) {
-                                String nomSalon = msg.split("::")[2];
+                                String nomSalon = msg.split("::",3)[2];
                                 if (Serveur.isSalonPresent(nomSalon)) {
                                     for (Salon sal : Serveur.salons) {
                                         if (sal.nom != null && sal.nom.equals(nomSalon)) {
@@ -130,8 +131,8 @@ public class Connexion extends Thread {
                                 }
                             }
                         } else if (msg.matches("salon::creation::.*")) {
-                            String nomSalon = msg.split("::")[2];
-                            int nbJoueurs = Integer.valueOf(msg.split("::")[3]);
+                            String nomSalon = msg.split("::",3)[2];
+                            int nbJoueurs = Integer.valueOf(msg.split("::",4)[3]);
                             synchronized (Serveur.salons) {
                                 if (nomSalon.length() > 15) {
                                     this.ecrireMessage("salon::creation::erreur::Nom de salon trop long !");
@@ -177,8 +178,8 @@ public class Connexion extends Thread {
                 while ((msg != null) && (this.salle != null) && (!msg.matches("connection::fin::.*"))) {
                     if (msg.matches("chat::.*")) {
                         if (!msg.equals("chat::")) {
-                            String contenu = msg.split("::")[1];
-                            this.salle.ecrireMessageAll("chat::" + this.nomJoueur + "::" + contenu);
+                            String contenu = msg.split("::",2)[1];
+                            this.salle.ecrireMessageAll("chat::" + this.nomJoueur + "::[" + new SimpleDateFormat("hh:mm:ss").format(new Date()) + "] " + contenu);
                         }
                     } else if (msg.matches("READY")) {
                         this.salle.repondre(this);

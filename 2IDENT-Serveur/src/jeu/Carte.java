@@ -75,7 +75,7 @@ public class Carte {
     }
     
     public static Carte parserCarte(String ca) {
-        Carte c = new Carte(ca.split("-")[0], ca.split("-")[1]);
+        Carte c = new Carte(ca.split("-",1)[0], ca.split("-",2)[1]);
         return c;
     }
 }

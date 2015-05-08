@@ -10,7 +10,9 @@ import java.io.Writer;
 import static java.lang.Thread.sleep;
 import java.net.Socket;
 import java.net.SocketException;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.concurrent.Semaphore;
@@ -164,7 +166,7 @@ public class Salon extends Thread {
                          throw new SocketException("Absence de réponse d'un/de joueur(s)");
                          }
                          */
-                        this.ecrireMessageAll("chat::[@Moderation]::Les cartes non distribuées sont : " + this.mains.listerCartesS(this.cartes.cartesRestantes));
+                        this.ecrireMessageAll("chat::[@Moderation]::[" + new SimpleDateFormat("hh:mm:ss").format(new Date()) + "] Les cartes non distribuées sont : " + this.mains.listerCartesS(this.cartes.cartesRestantes));
 
                         /*
                          if (!this.areReadyConnections(5)) {
@@ -212,7 +214,7 @@ public class Salon extends Thread {
                                     }
                                     this.semaphore.acquire(2);
                                     if (president != null && president.currentMsg.matches("jeu::echange::.*")) {
-                                        String presidentE = president.currentMsg.split("::")[2];
+                                        String presidentE = president.currentMsg.split("::",3)[2];
                                         presidentC = this.mains.parserJSON(presidentE);
                                         if (presidentC.size() == 2 && !this.mains.carteDupliquee(presidentC)) {
                                             for (Carte ca : presidentC) {
@@ -225,7 +227,7 @@ public class Salon extends Thread {
                                         }
                                     }
                                     if (vicePresident != null && vicePresident.currentMsg.matches("jeu::echange::.*")) {
-                                        String vicePresidentE = vicePresident.currentMsg.split("::")[2];
+                                        String vicePresidentE = vicePresident.currentMsg.split("::",3)[2];
                                         vicePresidentC = this.mains.parserJSON(vicePresidentE);
                                         if (vicePresidentC.size() == 2 && !this.mains.carteDupliquee(vicePresidentC)) {
                                             if (!this.mains.getMainJoueur(vicePresident.nomJoueur).contains(vicePresidentC.get(0))) {
@@ -300,7 +302,7 @@ public class Salon extends Thread {
                                     }
                                     this.semaphore.acquire();
                                     if (president != null && president.currentMsg.matches("jeu::echange::.*")) {
-                                        String presidentE = president.currentMsg.split("::")[2];
+                                        String presidentE = president.currentMsg.split("::",3)[2];
                                         presidentC = this.mains.parserJSON(presidentE);
                                         if (presidentC.size() == 2 && !this.mains.carteDupliquee(presidentC)) {
                                             for (Carte ca : presidentC) {
@@ -388,10 +390,10 @@ public class Salon extends Thread {
                                 }
 
                                 ArrayList<ArrayList<Carte>> combinaisons = this.modo.combinaisonsAutorisees(main);
-                                if (combinaisons.isEmpty() && tourJoueur.equals(tourJoue)) {
+                                if (!this.fosse.getDerniersCartesPosees().isEmpty() && tourJoueur.equals(tourJoue)) {
                                     this.ecrireMessageAll("jeu::sessionSuivante");
                                     this.modo.finSession();
-                                    this.ecrireMessageAll("chat::[@Moderation]::Tout le monde a passé. Fin de session. " + tourJoueur.nomJoueur + " est le dernier joueur à avoir joué.");
+                                    this.ecrireMessageAll("chat::[@Moderation]::[" + new SimpleDateFormat("hh:mm:ss").format(new Date()) + "] Tout le monde a passé. Fin de session. " + tourJoueur.nomJoueur + " est le dernier joueur à avoir joué.");
                                     interditsListe.clear();
                                     this.ecrireMessageAll("jeu::tour::" + tourJoueur.nomJoueur);
                                     combinaisons = this.modo.combinaisonsAutorisees(main);
@@ -399,10 +401,10 @@ public class Salon extends Thread {
                                 if (combinaisons.isEmpty()) {
                                     if (!main.isEmpty()) {
                                         if (!this.aPasse && this.fosse.getDerniersCartesPosees().size() == 1 && this.fosse.getADerniersCartesPosees().size() == 1 && this.fosse.getDerniersCartesPosees().get(0).getHauteur().equals(this.fosse.getADerniersCartesPosees().get(0).getHauteur())) {
-                                            this.ecrireMessageAll("chat::[@Moderation]::" + tourJoueur.nomJoueur + ", vous n'avez pas la carte obligatoire. On passe au joueur suivant.");;
+                                            this.ecrireMessageAll("chat::[@Moderation]::[" + new SimpleDateFormat("hh:mm:ss").format(new Date()) + "] " + tourJoueur.nomJoueur + ", vous n'avez pas la carte obligatoire. On passe au joueur suivant.");;
                                         }
                                         else {
-                                            this.ecrireMessageAll("chat::[@Moderation]::" + tourJoueur.nomJoueur + ", aucune combinaison de vos cartes n'est possible. On passe au joueur suivant.");;
+                                            this.ecrireMessageAll("chat::[@Moderation]::[" + new SimpleDateFormat("hh:mm:ss").format(new Date()) + "] " + tourJoueur.nomJoueur + ", aucune combinaison de vos cartes n'est possible. On passe au joueur suivant.");;
                                         }
                                     }
                                     msgAttendu = true;
@@ -424,7 +426,7 @@ public class Salon extends Thread {
                                         if (msgJoueurTour.equals("jeu::cartesJouees::")) {
                                             msgJoueurTour += "[]";
                                         }
-                                        String chaineCartes = msgJoueurTour.split("::")[2];
+                                        String chaineCartes = msgJoueurTour.split("::",3)[2];
                                         if (chaineCartes.equals("[]")) {
                                             if (combinaisons.isEmpty()) {
                                                 // Passe son tour sous la contrainte
@@ -434,7 +436,7 @@ public class Salon extends Thread {
                                                 // Passe son tour volontairement
                                                 // -> Ne peut plus jouer avant la fin de la session
                                                 interditsListe.add(tourJoueur);
-                                                this.ecrireMessageAll("chat::[@Moderation]::" + tourJoueur.nomJoueur + ", vous avez passé volontairement. Vous ne pourrez plus jouer jusqu'à la fin de la session !");
+                                                this.ecrireMessageAll("chat::[@Moderation]::[" + new SimpleDateFormat("hh:mm:ss").format(new Date()) + "] " + tourJoueur.nomJoueur + ", vous avez passé volontairement. Vous ne pourrez plus jouer jusqu'à la fin de la session !");
                                                 msgAttendu = true;
                                                 aPasse = true;
                                             }
@@ -491,7 +493,7 @@ public class Salon extends Thread {
                                                          throw new SocketException("Absence de réponse d'un/de joueur(s)");
                                                          }
                                                          */
-                                                        this.ecrireMessageAll("chat::[@Moderation]::" + tourJoueur.nomJoueur + ", vous avez joué un 2 en dernier. Vous serez Trou du Cul à la prochaine partie.");
+                                                        this.ecrireMessageAll("chat::[@Moderation]::[" + new SimpleDateFormat("hh:mm:ss").format(new Date()) + "] " + tourJoueur.nomJoueur + ", vous avez joué un 2 en dernier. Vous serez Trou du Cul à la prochaine partie.");
                                                     }
                                                     if (this.modo.ordreFinJoueurs.size() == this.nbJoueurs - 1) {
                                                         // Fin de la partie - 1 seul joueur a encore des cartes
@@ -523,10 +525,10 @@ public class Salon extends Thread {
                             }
                             this.modo.finSession();
                             if (gardeLaMain) {
-                                this.ecrireMessageAll("chat::[@Moderation]::Fin de session. " + tourJoueur.nomJoueur + " garde la main.");
+                                this.ecrireMessageAll("chat::[@Moderation]::[" + new SimpleDateFormat("hh:mm:ss").format(new Date()) + "] Fin de session. " + tourJoueur.nomJoueur + " garde la main.");
                             }
                             else {
-                                this.ecrireMessageAll("chat::[@Moderation]::Fin de session. Au joueur suivant.");
+                                this.ecrireMessageAll("chat::[@Moderation]::[" + new SimpleDateFormat("hh:mm:ss").format(new Date()) + "] Fin de session. Au joueur suivant.");
                             }
                         }
                         /*
@@ -536,7 +538,7 @@ public class Salon extends Thread {
                          */
 
                         this.modo.finPartie();
-                        this.ecrireMessageAll("chat::[@Moderation]::Fin de la partie. Distribution des cartes.");
+                        this.ecrireMessageAll("chat::[@Moderation]::[" + new SimpleDateFormat("hh:mm:ss").format(new Date()) + "] Fin de la partie. Distribution des cartes.");
                     }
                 } catch (SocketException e) {
                     System.out.println("Passage socket");
