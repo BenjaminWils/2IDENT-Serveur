@@ -3,6 +3,7 @@ package serveur;
 import java.io.*;
 import static java.lang.Thread.sleep;
 import java.net.*;
+import java.nio.charset.Charset;
 import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.logging.Level;
@@ -237,7 +238,7 @@ public class Connexion extends Thread {
      */
     public void ecrireMessage(String msg) {
         System.out.println("Envoi : " + msg);
-        out.println(msg);
+        out.println(new String(msg.getBytes(), Charset.forName("UTF-8")));
     }
     
     /**
